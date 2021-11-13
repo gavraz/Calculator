@@ -1,10 +1,10 @@
-package tokenization;
+package main.tokenization;
 
 public class NumberToken extends Token {
     private final double value;
 
     public NumberToken(double value) {
-        super(TokenType.NUMBER);
+        super(Type.NUMBER);
         this.value = value;
     }
 

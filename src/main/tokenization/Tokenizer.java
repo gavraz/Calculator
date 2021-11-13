@@ -1,4 +1,4 @@
-package tokenization;
+package main.tokenization;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -7,28 +7,28 @@ import java.util.Map;
 
 
 public class Tokenizer {
-    public class TokenException extends Exception {
-        public TokenException(String err) {
+    public class TokenizationException extends Exception {
+        public TokenizationException(String err) {
             super(err);
         }
     }
 
     private static class Factory {
         private static Factory instance;
-        private Map<String, TokenType> tokenPool;
+        private Map<String, Token.Type> tokenPool;
 
         private Factory() {
             this.tokenPool = new HashMap<>();
 
             // operators
-            this.tokenPool.put("+", TokenType.OPERATOR_PLUS);
-            this.tokenPool.put("-", TokenType.OPERATOR_MINUS);
-            this.tokenPool.put("*", TokenType.OPERATOR_MUL);
-            this.tokenPool.put("/", TokenType.OPERATOR_DIV);
+            this.tokenPool.put("+", Token.Type.OPERATOR_PLUS);
+            this.tokenPool.put("-", Token.Type.OPERATOR_MINUS);
+            this.tokenPool.put("*", Token.Type.OPERATOR_MUL);
+            this.tokenPool.put("/", Token.Type.OPERATOR_DIV);
 
             // separators
-            this.tokenPool.put("(", TokenType.SEPARATOR_LEFT_PARENTHESIS);
-            this.tokenPool.put(")", TokenType.SEPARATOR_RIGHT_PARENTHESIS);
+            this.tokenPool.put("(", Token.Type.SEPARATOR_LEFT_PARENTHESIS);
+            this.tokenPool.put(")", Token.Type.SEPARATOR_RIGHT_PARENTHESIS);
         }
 
         public static Factory Instance() {
@@ -62,7 +62,7 @@ public class Tokenizer {
     public Tokenizer() {
     }
 
-    public List<Token> Analyze(String line) {
+    public List<Token> Analyze(String line) throws TokenizationException {
         var tokens = new LinkedList<Token>();
 
         for (int i = 0; i < line.length(); i++) {
@@ -72,7 +72,7 @@ public class Tokenizer {
                 return null;
             }
 
-            if (token.GetType() == TokenType.Term) {
+            if (token.GetType() == Token.Type.Term) {
                 return tokens;
             }
 

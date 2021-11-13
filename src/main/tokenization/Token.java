@@ -1,22 +1,22 @@
-package tokenization;
-
-enum TokenType {
-    IDENTIFIER,
-    OPERATOR_PLUS, OPERATOR_MINUS, OPERATOR_MUL, OPERATOR_DIV,
-    SEPARATOR_LEFT_PARENTHESIS, SEPARATOR_RIGHT_PARENTHESIS,
-    NUMBER,
-    Term,
-}
+package main.tokenization;
 
 public class Token {
-    public static final Token TERM = new Token(TokenType.Term);
-    private final TokenType type;
+    public enum Type {
+        IDENTIFIER,
+        OPERATOR_PLUS, OPERATOR_MINUS, OPERATOR_MUL, OPERATOR_DIV,
+        SEPARATOR_LEFT_PARENTHESIS, SEPARATOR_RIGHT_PARENTHESIS,
+        NUMBER,
+        Term,
+    }
 
-    public Token(TokenType type) {
+    public static final Token TERM = new Token(Type.Term);
+    private final Type type;
+
+    public Token(Type type) {
         this.type = type;
     }
 
-    public TokenType GetType() {
+    public Type GetType() {
         return this.type;
     }
 

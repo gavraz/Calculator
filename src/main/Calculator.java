@@ -1,4 +1,6 @@
-import tokenization.Tokenizer;
+package main;
+
+import main.tokenization.Tokenizer;
 
 import java.util.HashMap;
 import java.util.Map;
