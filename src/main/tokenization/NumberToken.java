@@ -29,4 +29,13 @@ public class NumberToken extends Token {
     public double GetValue() {
         return value;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof NumberToken o)) {
+            return false;
+        }
+
+        return super.equals(o) && o.value == this.value;
+    }
 }

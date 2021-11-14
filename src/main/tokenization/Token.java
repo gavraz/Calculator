@@ -3,6 +3,7 @@ package main.tokenization;
 public class Token {
     public enum Type {
         IDENTIFIER,
+        EQUAL, PLUS_EQUAL, MINUS_EQUAL, MUL_EQUAL, DIV_EQUAL,
         OPERATOR_PLUS, OPERATOR_MINUS, OPERATOR_MUL, OPERATOR_DIV,
         SEPARATOR_LEFT_PARENTHESIS, SEPARATOR_RIGHT_PARENTHESIS,
         NUMBER,
@@ -18,6 +19,15 @@ public class Token {
 
     public Type GetType() {
         return this.type;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Token o)) {
+            return false;
+        }
+
+        return o.type == this.type;
     }
 
     public static boolean isWhitespace(char c) {

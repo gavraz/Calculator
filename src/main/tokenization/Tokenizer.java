@@ -21,6 +21,12 @@ public class Tokenizer {
             this.tokenPool = new HashMap<>();
 
             // operators
+            this.tokenPool.put("=", Token.Type.EQUAL);
+            this.tokenPool.put("+=", Token.Type.PLUS_EQUAL);
+            this.tokenPool.put("-=", Token.Type.MINUS_EQUAL);
+            this.tokenPool.put("*=", Token.Type.MUL_EQUAL);
+            this.tokenPool.put("/=", Token.Type.DIV_EQUAL);
+
             this.tokenPool.put("+", Token.Type.OPERATOR_PLUS);
             this.tokenPool.put("-", Token.Type.OPERATOR_MINUS);
             this.tokenPool.put("*", Token.Type.OPERATOR_MUL);
@@ -62,7 +68,7 @@ public class Tokenizer {
     public Tokenizer() {
     }
 
-    public List<Token> Analyze(String line) throws TokenizationException {
+    public List<Token> Analyze(String line) {
         var tokens = new LinkedList<Token>();
 
         for (int i = 0; i < line.length(); i++) {
