@@ -8,7 +8,7 @@ public class IdentifierToken extends Token {
         this.id = id;
     }
 
-    public static Token TryParse(String s, int i) {
+    public static Token tryParse(String s, int i) {
         if (!Token.isAlphabet(s.charAt(i))) {
             return null;
         }
@@ -31,7 +31,7 @@ public class IdentifierToken extends Token {
         return new IdentifierToken(s.substring(begin, i));
     }
 
-    public String GetID() {
+    public String getID() {
         return this.id;
     }
 }

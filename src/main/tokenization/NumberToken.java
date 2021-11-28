@@ -8,7 +8,7 @@ public class NumberToken extends Token {
         this.value = value;
     }
 
-    public static NumberToken TryParse(String s, int i) {
+    public static NumberToken tryParse(String s, int i) {
         int begin = i;
         for (; i < s.length(); i++) {
             if (Token.isWhitespace(s.charAt(i))) {
@@ -26,7 +26,7 @@ public class NumberToken extends Token {
         return new NumberToken(Integer.parseInt(s, begin, i, 10));
     }
 
-    public double GetValue() {
+    public double getValue() {
         return value;
     }
 

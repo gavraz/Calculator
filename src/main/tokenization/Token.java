@@ -4,6 +4,7 @@ public class Token {
     public enum Type {
         IDENTIFIER,
         EQUAL, PLUS_EQUAL, MINUS_EQUAL, MUL_EQUAL, DIV_EQUAL,
+        UNARY_PLUS_PLUS, UNARY_MINUS_MINUS,
         OPERATOR_PLUS, OPERATOR_MINUS, OPERATOR_MUL, OPERATOR_DIV,
         SEPARATOR_LEFT_PARENTHESIS, SEPARATOR_RIGHT_PARENTHESIS,
         NUMBER,
@@ -17,7 +18,7 @@ public class Token {
         this.type = type;
     }
 
-    public Type GetType() {
+    public Type getType() {
         return this.type;
     }
 
@@ -41,5 +42,16 @@ public class Token {
     public static boolean isAlphabet(char c) {
         return (c >= 'a' && c <= 'z') ||
                 (c >= 'A' && c <= 'Z');
+    }
+
+    public static boolean isBinaryOperator(Token token) {
+        switch (token.getType()) {
+            case OPERATOR_PLUS, OPERATOR_MINUS, OPERATOR_MUL, OPERATOR_DIV -> {
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 }

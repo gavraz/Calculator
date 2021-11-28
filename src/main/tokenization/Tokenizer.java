@@ -7,6 +7,7 @@ import java.util.Map;
 
 
 public class Tokenizer {
+
     public class TokenizationException extends Exception {
         public TokenizationException(String err) {
             super(err);
@@ -15,10 +16,12 @@ public class Tokenizer {
 
     private static class Factory {
         private static Factory instance;
-        private Map<String, Token.Type> tokenPool;
+        private final Map<String, Token.Type> tokenPool;
 
         private Factory() {
             this.tokenPool = new HashMap<>();
+
+            // TODO add unaries
 
             // operators
             this.tokenPool.put("=", Token.Type.EQUAL);
@@ -56,16 +59,24 @@ public class Tokenizer {
                 return new Token(type);
             }
 
-            var token = NumberToken.TryParse(line, i);
+            var token = NumberToken.tryParse(line, i);
             if (token != null) {
                 return token;
             }
 
-            return IdentifierToken.TryParse(line, i);
+            return IdentifierToken.tryParse(line, i);
         }
     }
 
     public Tokenizer() {
+    }
+
+    public Token PeekNext() {
+
+    }
+
+    public Token Next() {
+
     }
 
     public List<Token> Analyze(String line) {
@@ -78,7 +89,7 @@ public class Tokenizer {
                 return null;
             }
 
-            if (token.GetType() == Token.Type.Term) {
+            if (token.getType() == Token.Type.Term) {
                 return tokens;
             }
 
