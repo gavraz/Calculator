@@ -1,12 +1,14 @@
 package main.tokenization;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 
 public class Tokenizer {
+    private final Scanner scanner;
+    private int index;
+    // private Token current; TODO we can optimize
 
     public class TokenizationException extends Exception {
         public TokenizationException(String err) {
@@ -14,72 +16,27 @@ public class Tokenizer {
         }
     }
 
-    private static class Factory {
-        private static Factory instance;
-        private final Map<String, Token.Type> tokenPool;
-
-        private Factory() {
-            this.tokenPool = new HashMap<>();
-
-            // TODO add unaries
-
-            // operators
-            this.tokenPool.put("=", Token.Type.EQUAL);
-            this.tokenPool.put("+=", Token.Type.PLUS_EQUAL);
-            this.tokenPool.put("-=", Token.Type.MINUS_EQUAL);
-            this.tokenPool.put("*=", Token.Type.MUL_EQUAL);
-            this.tokenPool.put("/=", Token.Type.DIV_EQUAL);
-
-            this.tokenPool.put("+", Token.Type.OPERATOR_PLUS);
-            this.tokenPool.put("-", Token.Type.OPERATOR_MINUS);
-            this.tokenPool.put("*", Token.Type.OPERATOR_MUL);
-            this.tokenPool.put("/", Token.Type.OPERATOR_DIV);
-
-            // separators
-            this.tokenPool.put("(", Token.Type.SEPARATOR_LEFT_PARENTHESIS);
-            this.tokenPool.put(")", Token.Type.SEPARATOR_RIGHT_PARENTHESIS);
-        }
-
-        public static Factory Instance() {
-            if (instance == null) {
-                instance = new Factory();
-            }
-
-            return instance;
-        }
-
-        public Token TryGet(String line, int i) {
-            if (i >= line.length()) {
-                return Token.TERM;
-            }
-
-            char current = line.charAt(i);
-            var type = this.tokenPool.get(current + "");
-            if (type != null) {
-                return new Token(type);
-            }
-
-            var token = NumberToken.tryParse(line, i);
-            if (token != null) {
-                return token;
-            }
-
-            return IdentifierToken.tryParse(line, i);
-        }
+    public Tokenizer(InputStream input) {
+        this.scanner = new Scanner(input);
+        this.index = 0;
     }
 
-    public Tokenizer() {
+    public Token peekNext() {
+        Token token = Factory.Instance().TryGet(line, i);
+
+        return token;
     }
 
-    public Token PeekNext() {
+    public Token next() {
+
 
     }
 
-    public Token Next() {
+    public void advance() {
 
     }
 
-    public List<Token> Analyze(String line) {
+    public List<Token> analyze(String line) {
         var tokens = new LinkedList<Token>();
 
         for (int i = 0; i < line.length(); i++) {

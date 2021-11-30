@@ -5,32 +5,34 @@ import main.tokenization.NumberToken;
 import main.tokenization.Token;
 import main.tokenization.Tokenizer;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PrecedenceClimbing {
-    private final Map<Token.Type, Evaluator> evaluators;
+    private final Map<Token.Type, Evaluator> op_evaluators;
     private final Map<Token.Type, Integer> precedence; // lower precedes higher
-    private final Tokenizer tokenizer;
-    private final Map<String, Integer> vars;
+    private final Map<String, Double> vars;
+    private Tokenizer tokenizer;
 
     public PrecedenceClimbing() {
-        this.evaluators = new HashMap<>();
+        this.op_evaluators = new HashMap<>();
         this.precedence = new HashMap<>();
-        this.tokenizer = new Tokenizer();
         this.vars = new HashMap<>();
+        this.tokenizer = null;
 
         init_evaluators();
         init_precedence();
     }
-    
+
     private void init_evaluators() {
-        this.evaluators.put(Token.Type.OPERATOR_PLUS, new Evaluator() {
-            @Override
-            public double evaluate(Token lhs, Token rhs) {
-                return 0;
-            }
-        })
+        // TODO: consider bound checks
+        this.op_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> Value.New(lhs.value()+rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> Value.New(lhs.value()-rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> Value.New(lhs.value()*rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> Value.New(lhs.value()/rhs.value()));
+
+        // TODO how do we capture += ?
     }
 
     private void init_precedence() {
@@ -59,9 +61,9 @@ public class PrecedenceClimbing {
         throw new Exception("parsing failed");
     }
 
-    private double evaluate(Token token) throws Exception {
+    private Valuable evaluate(Token token) throws Exception {
         if (token.getType() == Token.Type.NUMBER) {
-            return ((NumberToken) (token)).getValue();
+            return Value.New(((NumberToken) (token)).getValue());
         }
 
         if (token.getType() == Token.Type.IDENTIFIER) {
@@ -70,45 +72,44 @@ public class PrecedenceClimbing {
                 throw new Exception("variable used prior declaration");
             }
 
-            return result;
+            return Value.New(result);
         }
 
         throw new Exception("could not evaluate token");
     }
 
-    public void parse(String line) throws Exception {
-        this.tokenizer.SetInputStream();
+    public void parse(InputStream input) throws Exception {
+        this.tokenizer = new Tokenizer(input);
 
-        var token = this.tokenizer.Next();
+        var token = this.tokenizer.next();
         expect(token, Token.Type.IDENTIFIER);
 
         this.parseExpression(token, 0);
     }
 
-    private double parseExpression(Token lhs, int max_precedence) throws Exception {
-        var lookahead = this.tokenizer.PeekNext();
+    private Valuable parseExpression(Token lhs, int max_precedence) throws Exception {
+        var lookahead = this.tokenizer.peekNext();
+        var lhs_val = evaluate(lhs);
 
         while (Token.isBinaryOperator(lookahead) &&
                 this.precedence.get(lookahead.getType()) <= max_precedence) {
             var op = lookahead;
-            this.tokenizer.Advance();
-            var rhs = this.tokenizer.Next();
+            this.tokenizer.advance();
+            var rhs = this.tokenizer.next();
             expect(rhs, Token.Type.IDENTIFIER, Token.Type.NUMBER);
-
             var rhs_val = evaluate(rhs);
-            lookahead = this.tokenizer.PeekNext();
 
+            lookahead = this.tokenizer.peekNext();
             while (Token.isBinaryOperator(lookahead) &&
                     this.precedence.get(lookahead.getType()) < this.precedence.get(op.getType())) {
                 // TODO: or a right-associative operator whose precedence is equal to op's
-                double rhsValue = parseExpression(rhs, this.precedence.get(op.getType()) - 1);
-                lookahead = this.tokenizer.PeekNext();
+                rhs_val = parseExpression(rhs, this.precedence.get(op.getType()) - 1);
+                lookahead = this.tokenizer.peekNext();
             }
 
-
-            double lhsValue = the result of applying op with operands lhs and rhsValue
+            lhs_val = this.op_evaluators.get(op.getType()).evaluate(lhs_val, rhs_val);
         }
 
-        return lhsValue;
+        return lhs_val;
     }
 }

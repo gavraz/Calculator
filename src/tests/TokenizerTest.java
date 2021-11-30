@@ -9,8 +9,8 @@ public class TokenizerTest {
 
     @Test
     public void TestTokenizer() {
-        var tokenizer = new Tokenizer();
-        var tokens = tokenizer.Analyze("1+2");
+        var tokenizer = new Tokenizer(input);
+        var tokens = tokenizer.analyze("1+2");
         assertEquals(3, tokens.size());
         assertEquals(new NumberToken(1), tokens.get(0));
         assertEquals(new Token(Token.Type.OPERATOR_PLUS), tokens.get(1));
