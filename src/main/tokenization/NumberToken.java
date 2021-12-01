@@ -8,24 +8,6 @@ public class NumberToken extends Token {
         this.value = value;
     }
 
-    public static NumberToken tryParse(String s, int i) {
-        int begin = i;
-        for (; i < s.length(); i++) {
-            if (Token.isWhitespace(s.charAt(i))) {
-                break;
-            }
-            if (!Token.isNumeric(s.charAt(i))) {
-                break;
-            }
-        }
-
-        if (begin == i) {
-            return null;
-        }
-
-        return new NumberToken(Integer.parseInt(s, begin, i, 10));
-    }
-
     public double getValue() {
         return value;
     }
