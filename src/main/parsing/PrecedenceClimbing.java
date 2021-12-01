@@ -16,9 +16,13 @@ public class PrecedenceClimbing {
     private Tokenizer tokenizer;
 
     public PrecedenceClimbing() {
+        this(new HashMap<>());
+    }
+
+    public PrecedenceClimbing(Map<String, Double> vars) {
         this.op_evaluators = new HashMap<>();
         this.precedence = new HashMap<>();
-        this.vars = new HashMap<>();
+        this.vars = vars;
         this.tokenizer = null;
 
         init_evaluators();
@@ -83,18 +87,18 @@ public class PrecedenceClimbing {
 
         var lhs = this.tokenizer.next();
 
-        return this.parseExpression(lhs, 0);
+        return this.parseExpression(lhs, 2);
     }
 
-    private Token parseExpression(Token lhs, int min_precedence) throws Exception {
+    private Token parseExpression(Token lhs, int max_precedence) throws Exception {
         var lookahead = this.tokenizer.peekNext();
 
         while (ParsingUtil.isBinaryOperator(lookahead) &&
-                this.precedence.get(lookahead.getType()) >= min_precedence) {
+                this.precedence.get(lookahead.getType()) <= max_precedence) {
             var op = lookahead;
             this.tokenizer.advance();
             var rhs = this.tokenizer.next();
-            ParsingUtil.expect(rhs, Token.Type.IDENTIFIER, Token.Type.NUMBER);
+            ParsingUtil.expect(rhs, Token.Type.IDENTIFIER, Token.Type.NUMBER); // TODO ?
 
             lookahead = this.tokenizer.peekNext();
             while (ParsingUtil.isBinaryOperator(lookahead) &&
