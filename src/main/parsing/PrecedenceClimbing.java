@@ -47,6 +47,58 @@ public class PrecedenceClimbing {
 
             return rhs_val;
         });
+
+        this.op_evaluators.put(Token.Type.PLUS_EQUAL, (lhs, rhs) -> {
+            if (lhs.getType() != Token.Type.IDENTIFIER) {
+                throw new Exception("expected identifier in assignment");
+            }
+
+            var lhs_var = (IdentifierToken) lhs;
+            var rhs_val = evaluate_token(rhs);
+            var res = evaluate_token(lhs_var) + rhs_val;
+            vars.put(lhs_var.getID(), res);
+
+            return res;
+        });
+
+        this.op_evaluators.put(Token.Type.MINUS_EQUAL, (lhs, rhs) -> {
+            if (lhs.getType() != Token.Type.IDENTIFIER) {
+                throw new Exception("expected identifier in assignment");
+            }
+
+            var lhs_var = (IdentifierToken) lhs;
+            var rhs_val = evaluate_token(rhs);
+            var res = evaluate_token(lhs_var) - rhs_val;
+            vars.put(lhs_var.getID(), res);
+
+            return res;
+        });
+
+        this.op_evaluators.put(Token.Type.MUL_EQUAL, (lhs, rhs) -> {
+            if (lhs.getType() != Token.Type.IDENTIFIER) {
+                throw new Exception("expected identifier in assignment");
+            }
+
+            var lhs_var = (IdentifierToken) lhs;
+            var rhs_val = evaluate_token(rhs);
+            var res = evaluate_token(lhs_var) * rhs_val;
+            vars.put(lhs_var.getID(), res);
+
+            return res;
+        });
+
+        this.op_evaluators.put(Token.Type.DIV_EQUAL, (lhs, rhs) -> {
+            if (lhs.getType() != Token.Type.IDENTIFIER) {
+                throw new Exception("expected identifier in assignment");
+            }
+
+            var lhs_var = (IdentifierToken) lhs;
+            var rhs_val = evaluate_token(rhs);
+            var res = evaluate_token(lhs_var) / rhs_val;
+            vars.put(lhs_var.getID(), res);
+
+            return res;
+        });
     }
 
     private void init_precedence() {
