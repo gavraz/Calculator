@@ -1,7 +1,5 @@
 package main.tokenization;
 
-import java.io.BufferedInputStream;
-
 
 class Factory {
     private static Factory instance;
@@ -14,71 +12,97 @@ class Factory {
     private Factory() {
 
         this.doubleSymbolGetter = (input, i) -> {
-            if (i + 1 > input.length()) {
-                return null; // TODO maybe term?
+            if (i + 1 >= input.length()) {
+                return TryGetter.Result.None;
             }
             String symbols = "" + input.charAt(i) + input.charAt(i + 1);
-            return switch (symbols) {
-                case "+=" -> new Token(Token.Type.PLUS_EQUAL);
-                case "-=" -> new Token(Token.Type.MINUS_EQUAL);
-                case "*=" -> new Token(Token.Type.MUL_EQUAL);
-                case "/=" -> new Token(Token.Type.DIV_EQUAL);
-                case "++" -> new Token(Token.Type.UNARY_INC);
-                case "--" -> new Token(Token.Type.UNARY_DEC);
-                default -> null;
-            };
+
+            Token.Type type;
+            switch (symbols) {
+                case "+=" -> type = Token.Type.PLUS_EQUAL;
+                case "-=" -> type = Token.Type.MINUS_EQUAL;
+                case "*=" -> type = Token.Type.MUL_EQUAL;
+                case "/=" -> type = Token.Type.DIV_EQUAL;
+                case "++" -> type = Token.Type.UNARY_INC;
+                case "--" -> type = Token.Type.UNARY_DEC;
+                default -> type = null;
+            }
+            ;
+
+            if (type == null) {
+                return TryGetter.Result.None;
+            }
+            return new TryGetter.Result(new Token(type), 2);
         };
 
-        this.singleSymbolGetter = (input, i) -> switch (input.charAt(i)) {
-            case '+' -> new Token(Token.Type.OPERATOR_PLUS);
-            case '-' -> new Token(Token.Type.OPERATOR_MINUS);
-            case '*' -> new Token(Token.Type.OPERATOR_MUL);
-            case '/' -> new Token(Token.Type.OPERATOR_DIV);
-            case '(' -> new Token(Token.Type.LEFT_PARENTHESIS);
-            case ')' -> new Token(Token.Type.RIGHT_PARENTHESIS);
-            case '=' -> new Token(Token.Type.EQUAL);
-            default -> null;
+        this.singleSymbolGetter = (input, i) -> {
+            if (i >= input.length()) {
+                return TryGetter.Result.None;
+            }
+
+            Token.Type type;
+            switch (input.charAt(i)) {
+                case '+' -> type = Token.Type.OPERATOR_PLUS;
+                case '-' -> type = Token.Type.OPERATOR_MINUS;
+                case '*' -> type = Token.Type.OPERATOR_MUL;
+                case '/' -> type = Token.Type.OPERATOR_DIV;
+                case '(' -> type = Token.Type.LEFT_PARENTHESIS;
+                case ')' -> type = Token.Type.RIGHT_PARENTHESIS;
+                case '=' -> type = Token.Type.EQUAL;
+                default -> type = null;
+            }
+
+            if (type == null) {
+                return TryGetter.Result.None;
+            }
+            return new TryGetter.Result(new Token(type), 1);
         };
 
         this.numberGetter = (input, i) -> {
             int begin = i;
             for (; i < input.length(); i++) {
-                if (Token.isWhitespace(input.charAt(i))) {
+                if (CharUtil.isWhitespace(input.charAt(i))) {
                     break;
                 }
-                if (!Token.isNumeric(input.charAt(i))) {
+                if (!CharUtil.isNumeric(input.charAt(i))) {
                     break;
                 }
             }
 
             if (begin == i) {
-                return null;
+                return TryGetter.Result.None;
             }
 
-            return new NumberToken(Integer.parseInt(input, begin, i, 10));
+            return new TryGetter.Result(
+                    new NumberToken(Integer.parseInt(input, begin, i, 10)),
+                    i - begin
+            );
         };
 
         this.identifierGetter = (input, i) -> {
-            if (!Token.isAlphabet(input.charAt(i))) {
+            if (!CharUtil.isAlphabet(input.charAt(i))) {
                 return null;
             }
 
             int begin = i;
             for (; i < input.length(); i++) {
                 var current = input.charAt(i);
-                if (Token.isWhitespace(current)) {
+                if (CharUtil.isWhitespace(current)) {
                     break;
                 }
-                if (!Token.isNumeric(current) && !Token.isAlphabet(current)) {
+                if (!CharUtil.isNumeric(current) && !CharUtil.isAlphabet(current)) {
                     break;
                 }
             }
 
             if (begin == i) {
-                return null;
+                return TryGetter.Result.None;
             }
 
-            return new IdentifierToken(input.substring(begin, i));
+            return new TryGetter.Result(
+                    new IdentifierToken(input.substring(begin, i)),
+                    i - begin
+            );
         };
     }
 
@@ -92,9 +116,9 @@ class Factory {
 
     // TODO: document the major optimization: c_str + state machine!
 
-    public Token TryGet(String line, int i) {
+    public TryGetter.Result TryGet(String line, int i) {
         if (i >= line.length()) {
-            return Token.TERM;
+            return new TryGetter.Result(Token.TERM, 0);
         }
 
         /// Tokenization order:
@@ -104,17 +128,17 @@ class Factory {
         /// TWO SYMBOLS --> SINGLE SYMBOL --> NUM --> VAR
 
         var token = this.doubleSymbolGetter.tryGetNext(line, i);
-        if (token != null) {
+        if (token.token != null) {
             return token;
         }
 
         token = this.singleSymbolGetter.tryGetNext(line, i);
-        if (token != null) {
+        if (token.token != null) {
             return token;
         }
 
         token = this.numberGetter.tryGetNext(line, i);
-        if (token != null) {
+        if (token.token != null) {
             return token;
         }
 

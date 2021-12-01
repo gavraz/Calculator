@@ -27,10 +27,10 @@ public class PrecedenceClimbing {
 
     private void init_evaluators() {
         // TODO: consider bound checks
-        this.op_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> Value.New(lhs.value()+rhs.value()));
-        this.op_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> Value.New(lhs.value()-rhs.value()));
-        this.op_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> Value.New(lhs.value()*rhs.value()));
-        this.op_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> Value.New(lhs.value()/rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> Value.New(lhs.value() + rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> Value.New(lhs.value() - rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> Value.New(lhs.value() * rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> Value.New(lhs.value() / rhs.value()));
 
         // TODO how do we capture += ?
     }
@@ -51,16 +51,6 @@ public class PrecedenceClimbing {
         this.precedence.put(Token.Type.DIV_EQUAL, 2);
     }
 
-    private static void expect(Token token, Token.Type... types) throws Exception {
-        for (Token.Type type : types) {
-            if (token.getType() == type) {
-                return;
-            }
-        }
-
-        throw new Exception("parsing failed");
-    }
-
     private Valuable evaluate(Token token) throws Exception {
         if (token.getType() == Token.Type.NUMBER) {
             return Value.New(((NumberToken) (token)).getValue());
@@ -78,29 +68,32 @@ public class PrecedenceClimbing {
         throw new Exception("could not evaluate token");
     }
 
-    public void parse(InputStream input) throws Exception {
+    public double parse(String input) throws Exception {
         this.tokenizer = new Tokenizer(input);
 
-        var token = this.tokenizer.next();
-        expect(token, Token.Type.IDENTIFIER);
+        var variable = this.tokenizer.next();
+        ParsingUtil.expect(variable, Token.Type.IDENTIFIER);
+        var assignment_op = this.tokenizer.next();
+        ParsingUtil.expect(ParsingUtil.isAssignmentOperator(assignment_op));
 
-        this.parseExpression(token, 0);
+
+        return this.parseExpression(this.tokenizer.next(), 0).value();
     }
 
     private Valuable parseExpression(Token lhs, int max_precedence) throws Exception {
         var lookahead = this.tokenizer.peekNext();
         var lhs_val = evaluate(lhs);
 
-        while (Token.isBinaryOperator(lookahead) &&
+        while (ParsingUtil.isBinaryOperator(lookahead) &&
                 this.precedence.get(lookahead.getType()) <= max_precedence) {
             var op = lookahead;
             this.tokenizer.advance();
             var rhs = this.tokenizer.next();
-            expect(rhs, Token.Type.IDENTIFIER, Token.Type.NUMBER);
+            ParsingUtil.expect(rhs, Token.Type.IDENTIFIER, Token.Type.NUMBER);
             var rhs_val = evaluate(rhs);
 
             lookahead = this.tokenizer.peekNext();
-            while (Token.isBinaryOperator(lookahead) &&
+            while (ParsingUtil.isBinaryOperator(lookahead) &&
                     this.precedence.get(lookahead.getType()) < this.precedence.get(op.getType())) {
                 // TODO: or a right-associative operator whose precedence is equal to op's
                 rhs_val = parseExpression(rhs, this.precedence.get(op.getType()) - 1);

@@ -1,61 +1,65 @@
 package main.tokenization;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 
-
+// TODO ?
+//public class TokenizationException extends Exception {
+//    public TokenizationException(String err) {
+//        super(err);
+//    }
+//}
 
 
 public class Tokenizer {
-    private final Scanner scanner;
-    private int index;
-    // private Token current; TODO we can optimize
+    private final String input;
+    private Token next;
+    private int i;
+    private int last_consumed;
 
-    public class TokenizationException extends Exception {
-        public TokenizationException(String err) {
-            super(err);
-        }
-    }
-
-    public Tokenizer(InputStream input) {
-        this.scanner = new Scanner(input);
-        this.index = 0;
+    public Tokenizer(String input) {
+        this.input = input;
+        this.i = 0;
+        this.last_consumed = 0;
     }
 
     public Token peekNext() {
-        Token token = Factory.Instance().TryGet(line, i);
+        if (this.next != null) {
+            return this.next;
+        }
 
-        return token;
+        TryGetter.Result result = Factory.Instance().TryGet(this.input, this.i);
+        this.next = result.token;
+        this.last_consumed = result.consumed;
+        return this.next;
     }
 
     public Token next() {
+        Token current = this.peekNext();
+        this.advance();
 
-
+        return current;
     }
 
     public void advance() {
-
+        this.i += this.last_consumed;
+        this.last_consumed = 0;
+        if (this.next.getType() != Token.Type.Term) {
+            this.next = null;
+        }
     }
 
-    public List<Token> analyze(String line) {
+    public static List<Token> analyze(String line) {
+        Tokenizer tokenizer = new Tokenizer(line);
         var tokens = new LinkedList<Token>();
 
-        for (int i = 0; i < line.length(); i++) {
+        while (true) {
+            var token = tokenizer.next();
+            tokens.add(token);
 
-            Token token = Factory.Instance().TryGet(line, i);
-            if (token == null) {
-                return null;
-            }
-
-            if (token.getType() == Token.Type.Term) {
+            if (token != null && token.getType() == Token.Type.Term) {
                 return tokens;
             }
-
-            tokens.add(token);
         }
-
-        return tokens;
     }
 }

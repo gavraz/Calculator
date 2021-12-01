@@ -13,7 +13,7 @@ public class Calculator {
     }
 
     public void ParseLine(String line) { // TODO should throw something
-        Tokenizer tokenizer = new Tokenizer(input);
+//        Tokenizer tokenizer = new Tokenizer(input);
 
         //var token = tokenizer.Next(line);
     }
