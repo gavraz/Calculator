@@ -11,4 +11,9 @@ public class IdentifierToken extends Token {
     public String getID() {
         return this.id;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + this.id;
+    }
 }

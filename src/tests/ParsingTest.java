@@ -15,7 +15,8 @@ public class ParsingTest {
         PrecedenceClimbing parser = new PrecedenceClimbing();
         try {
             var res = parser.parse("x=5");
-            assertEquals(5.0, res);
+            assertEquals(Token.Type.NUMBER, res.getType());
+            assertEquals(5.0, ((NumberToken)res).getValue());
         } catch (Exception e) {
             e.printStackTrace();
         }

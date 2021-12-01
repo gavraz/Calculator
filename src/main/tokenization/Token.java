@@ -11,6 +11,27 @@ public class Token {
         Term,
     }
 
+    private static String asString(Type t) {
+        return switch (t) {
+            case IDENTIFIER -> "identifier";
+            case EQUAL -> "=";
+            case PLUS_EQUAL -> "+=";
+            case MINUS_EQUAL -> "-=";
+            case MUL_EQUAL -> "*=";
+            case DIV_EQUAL -> "/=";
+            case UNARY_INC -> "++";
+            case UNARY_DEC -> "--";
+            case OPERATOR_PLUS -> "+";
+            case OPERATOR_MINUS -> "-";
+            case OPERATOR_MUL -> "*";
+            case OPERATOR_DIV -> "/";
+            case LEFT_PARENTHESIS -> "(";
+            case RIGHT_PARENTHESIS -> ")";
+            case NUMBER -> "number";
+            case Term -> "term";
+        };
+    }
+
     public static final Token TERM = new Token(Type.Term);
     private final Type type;
 
@@ -29,5 +50,10 @@ public class Token {
         }
 
         return o.type == this.type;
+    }
+
+    @Override
+    public String toString() {
+        return asString(this.type);
     }
 }

@@ -27,12 +27,22 @@ public class PrecedenceClimbing {
 
     private void init_evaluators() {
         // TODO: consider bound checks
-        this.op_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> Value.New(lhs.value() + rhs.value()));
-        this.op_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> Value.New(lhs.value() - rhs.value()));
-        this.op_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> Value.New(lhs.value() * rhs.value()));
-        this.op_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> Value.New(lhs.value() / rhs.value()));
+        this.op_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> evaluate_token(lhs) + evaluate_token(rhs));
+        this.op_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> evaluate_token(lhs) - evaluate_token(rhs));
+        this.op_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> evaluate_token(lhs) * evaluate_token(rhs));
+        this.op_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> evaluate_token(lhs) / evaluate_token(rhs));
 
-        // TODO how do we capture += ?
+        this.op_evaluators.put(Token.Type.EQUAL, (lhs, rhs) -> {
+            if (lhs.getType() != Token.Type.IDENTIFIER) {
+                throw new Exception("expected identifier in assignment");
+            }
+
+            var lhs_var = (IdentifierToken) lhs;
+            var rhs_val = evaluate_token(rhs);
+            vars.put(lhs_var.getID(), rhs_val);
+
+            return rhs_val;
+        });
     }
 
     private void init_precedence() {
@@ -51,9 +61,9 @@ public class PrecedenceClimbing {
         this.precedence.put(Token.Type.DIV_EQUAL, 2);
     }
 
-    private Valuable evaluate(Token token) throws Exception {
+    private double evaluate_token(Token token) throws Exception {
         if (token.getType() == Token.Type.NUMBER) {
-            return Value.New(((NumberToken) (token)).getValue());
+            return ((NumberToken) (token)).getValue();
         }
 
         if (token.getType() == Token.Type.IDENTIFIER) {
@@ -62,27 +72,22 @@ public class PrecedenceClimbing {
                 throw new Exception("variable used prior declaration");
             }
 
-            return Value.New(result);
+            return result;
         }
 
         throw new Exception("could not evaluate token");
     }
 
-    public double parse(String input) throws Exception {
+    public Token parse(String input) throws Exception {
         this.tokenizer = new Tokenizer(input);
 
-        var variable = this.tokenizer.next();
-        ParsingUtil.expect(variable, Token.Type.IDENTIFIER);
-        var assignment_op = this.tokenizer.next();
-        ParsingUtil.expect(ParsingUtil.isAssignmentOperator(assignment_op));
+        var lhs = this.tokenizer.next();
 
-
-        return this.parseExpression(this.tokenizer.next(), 0).value();
+        return this.parseExpression(lhs, 0);
     }
 
-    private Valuable parseExpression(Token lhs, int max_precedence) throws Exception {
+    private Token parseExpression(Token lhs, int max_precedence) throws Exception {
         var lookahead = this.tokenizer.peekNext();
-        var lhs_val = evaluate(lhs);
 
         while (ParsingUtil.isBinaryOperator(lookahead) &&
                 this.precedence.get(lookahead.getType()) <= max_precedence) {
@@ -90,19 +95,18 @@ public class PrecedenceClimbing {
             this.tokenizer.advance();
             var rhs = this.tokenizer.next();
             ParsingUtil.expect(rhs, Token.Type.IDENTIFIER, Token.Type.NUMBER);
-            var rhs_val = evaluate(rhs);
 
             lookahead = this.tokenizer.peekNext();
             while (ParsingUtil.isBinaryOperator(lookahead) &&
                     this.precedence.get(lookahead.getType()) < this.precedence.get(op.getType())) {
                 // TODO: or a right-associative operator whose precedence is equal to op's
-                rhs_val = parseExpression(rhs, this.precedence.get(op.getType()) - 1);
+                rhs = parseExpression(rhs, this.precedence.get(op.getType()) - 1);
                 lookahead = this.tokenizer.peekNext();
             }
 
-            lhs_val = this.op_evaluators.get(op.getType()).evaluate(lhs_val, rhs_val);
+            lhs = new NumberToken(this.op_evaluators.get(op.getType()).evaluate(lhs, rhs));
         }
 
-        return lhs_val;
+        return lhs;
     }
 }

@@ -20,4 +20,9 @@ public class NumberToken extends Token {
 
         return super.equals(o) && o.value == this.value;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + this.value;
+    }
 }
