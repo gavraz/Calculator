@@ -86,11 +86,11 @@ public class PrecedenceClimbing {
         return this.parseExpression(lhs, 0);
     }
 
-    private Token parseExpression(Token lhs, int max_precedence) throws Exception {
+    private Token parseExpression(Token lhs, int min_precedence) throws Exception {
         var lookahead = this.tokenizer.peekNext();
 
         while (ParsingUtil.isBinaryOperator(lookahead) &&
-                this.precedence.get(lookahead.getType()) <= max_precedence) {
+                this.precedence.get(lookahead.getType()) >= min_precedence) {
             var op = lookahead;
             this.tokenizer.advance();
             var rhs = this.tokenizer.next();
