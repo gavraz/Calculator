@@ -22,4 +22,49 @@ public class CalculatorTest {
             System.out.printf("Could not evaluate expression: %s\n", e);
         }
     }
+
+    @Test
+    public void TestParentheses() {
+        Calculator calc = new Calculator();
+        var input = new ByteArrayInputStream("x=((1+2)*5)".getBytes());
+
+        try {
+            calc.evaluate(new InputStreamReader(input));
+            assertEquals("(x=15.0)", calc.output());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        input = new ByteArrayInputStream("x=((5+1)*(2+1)+3)".getBytes());
+        try {
+            calc.evaluate(new InputStreamReader(input));
+            assertEquals("(x=21.0)", calc.output());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        input = new ByteArrayInputStream("x=((5+1)+(1+1)*(3+0))".getBytes());
+        try {
+            calc.evaluate(new InputStreamReader(input));
+            assertEquals("(x=12.0)", calc.output());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        input = new ByteArrayInputStream("x=(6)".getBytes());
+        try {
+            calc.evaluate(new InputStreamReader(input));
+            assertEquals("(x=6.0)", calc.output());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        input = new ByteArrayInputStream("x=((1+2))+(3)".getBytes());
+        try {
+            calc.evaluate(new InputStreamReader(input));
+            assertEquals("(x=6.0)", calc.output());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

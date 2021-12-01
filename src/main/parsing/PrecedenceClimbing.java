@@ -14,6 +14,7 @@ public class PrecedenceClimbing {
     private final Map<Token.Type, Integer> precedence; // lower precedes higher
     private final Map<String, Double> vars;
     private Tokenizer tokenizer;
+    private int max_precedence;
 
     public PrecedenceClimbing() {
         this(new HashMap<>());
@@ -115,6 +116,7 @@ public class PrecedenceClimbing {
         this.precedence.put(Token.Type.MINUS_EQUAL, 2);
         this.precedence.put(Token.Type.MUL_EQUAL, 2);
         this.precedence.put(Token.Type.DIV_EQUAL, 2);
+        this.max_precedence = 2;
     }
 
     private double evaluate_token(Token token) throws Exception {
@@ -139,17 +141,30 @@ public class PrecedenceClimbing {
 
         var lhs = this.tokenizer.next();
 
-        return this.parseExpression(lhs, 2);
+        return this.parseExpression(lhs, this.max_precedence);
     }
 
     private Token parseExpression(Token lhs, int max_precedence) throws Exception {
+        if (lhs.getType() == Token.Type.LEFT_PARENTHESIS) {
+            lhs = parseExpression(this.tokenizer.next(), this.max_precedence);
+        }
+
         var lookahead = this.tokenizer.peekNext();
+
+        if (lookahead.getType() == Token.Type.RIGHT_PARENTHESIS) {
+            this.tokenizer.advance();
+        }
 
         while (ParsingUtil.isBinaryOperator(lookahead) &&
                 this.precedence.get(lookahead.getType()) <= max_precedence) {
             var op = lookahead;
             this.tokenizer.advance();
             var rhs = this.tokenizer.next();
+
+            if (rhs.getType() == Token.Type.LEFT_PARENTHESIS) {
+                rhs = parseExpression(this.tokenizer.next(), this.max_precedence);
+            }
+
             ParsingUtil.expect(rhs, Token.Type.IDENTIFIER, Token.Type.NUMBER); // TODO ?
 
             lookahead = this.tokenizer.peekNext();
@@ -161,6 +176,10 @@ public class PrecedenceClimbing {
             }
 
             lhs = new NumberToken(this.op_evaluators.get(op.getType()).evaluate(lhs, rhs));
+
+            if (lookahead.getType() == Token.Type.RIGHT_PARENTHESIS) {
+                this.tokenizer.advance();
+            }
         }
 
         return lhs;

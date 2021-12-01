@@ -1,6 +1,5 @@
 package main;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 
 class Main {
