@@ -1,11 +1,9 @@
 package main;
 
 import main.parsing.PrecedenceClimbing;
-import main.tokenization.Tokenizer;
 
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -16,7 +14,7 @@ public class Calculator {
         this.vars = new HashMap<>();
     }
 
-    public void evaluate(InputStream input) throws Exception {
+    public void evaluate(InputStreamReader input) throws Exception {
         Scanner scanner = new Scanner(input);
         PrecedenceClimbing parser = new PrecedenceClimbing(this.vars);
 
