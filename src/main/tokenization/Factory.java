@@ -61,10 +61,11 @@ class Factory {
         this.numberGetter = (input, i) -> {
             int begin = i;
             for (; i < input.length(); i++) {
-                if (CharUtil.isWhitespace(input.charAt(i))) {
+                var c = input.charAt(i);
+                if (CharUtil.isWhitespace(c)) {
                     break;
                 }
-                if (!CharUtil.isNumeric(input.charAt(i))) {
+                if (c != '.' && !CharUtil.isNumeric(c)) {
                     break;
                 }
             }
@@ -74,7 +75,7 @@ class Factory {
             }
 
             return new TryGetter.Result(
-                    new NumberToken(Integer.parseInt(input, begin, i, 10)),
+                    new NumberToken(Double.parseDouble(input.substring(begin, i))),
                     i - begin
             );
         };
