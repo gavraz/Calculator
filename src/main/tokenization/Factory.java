@@ -90,7 +90,7 @@ class Factory {
             }
 
             return new TryGetter.Result(
-                    new NumberToken(Double.parseDouble(input.substring(begin, i))),
+                    new ValueToken(Double.parseDouble(input.substring(begin, i))),
                     consumed + i - begin
             );
         };

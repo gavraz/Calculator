@@ -1,9 +1,12 @@
 package main.tokenization;
 
-public class NumberToken extends Token {
+/**
+ * ValueToken is a token that has a value.
+ */
+public class ValueToken extends Token {
     private final double value;
 
-    public NumberToken(double value) {
+    public ValueToken(double value) {
         super(Type.NUMBER);
         this.value = value;
     }
@@ -14,7 +17,7 @@ public class NumberToken extends Token {
 
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof NumberToken o)) {
+        if (!(other instanceof ValueToken o)) {
             return false;
         }
 

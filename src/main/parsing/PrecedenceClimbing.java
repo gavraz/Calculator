@@ -1,33 +1,37 @@
 package main.parsing;
 
 import main.tokenization.IdentifierToken;
-import main.tokenization.NumberToken;
+import main.tokenization.ValueToken;
 import main.tokenization.Token;
 import main.tokenization.Tokenizer;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * PrecedenceClimbing is the implementation of the precedence climbing parser.
+ * @link https://en.wikipedia.org/wiki/Operator-precedence_parser
+ */
 public class PrecedenceClimbing {
-    private UnaryEvaluator unary_op;
-    private final Map<Token.Type, Evaluator> bop_evaluators; // a collection of all binary operator evaluators
+    private final UnaryEvaluator unary_evaluator;
+    private final Map<Token.Type, Evaluator> binary_evaluators; // a collection of all binary operator evaluators
     private final Map<Token.Type, Integer> precedence; // lower precedes higher
     private final Map<String, Double> vars;
     private Tokenizer tokenizer;
     private int max_precedence;
-    private int open_parentheses;
+    private ParenthesesValidator parentheses_validator;
 
     public PrecedenceClimbing() {
         this(new HashMap<>());
     }
 
     public PrecedenceClimbing(Map<String, Double> vars) {
-        this.bop_evaluators = new HashMap<>();
+        this.binary_evaluators = new HashMap<>();
         this.precedence = new HashMap<>();
         this.vars = vars;
         this.tokenizer = null;
 
-        this.unary_op = new UnaryEvaluator(this.vars);
+        this.unary_evaluator = new UnaryEvaluator(this.vars);
 
         init_binary_evaluators();
         init_precedence();
@@ -35,12 +39,12 @@ public class PrecedenceClimbing {
 
     private void init_binary_evaluators() {
         // TODO: consider bound checks
-        this.bop_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> evaluate_token(lhs) + evaluate_token(rhs));
-        this.bop_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> evaluate_token(lhs) - evaluate_token(rhs));
-        this.bop_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> evaluate_token(lhs) * evaluate_token(rhs));
-        this.bop_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> evaluate_token(lhs) / evaluate_token(rhs)); // TODO DIV BY ZERO?
+        this.binary_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> evaluate_token(lhs) + evaluate_token(rhs));
+        this.binary_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> evaluate_token(lhs) - evaluate_token(rhs));
+        this.binary_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> evaluate_token(lhs) * evaluate_token(rhs));
+        this.binary_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> evaluate_token(lhs) / evaluate_token(rhs)); // TODO DIV BY ZERO?
 
-        this.bop_evaluators.put(Token.Type.EQUAL, (lhs, rhs) -> {
+        this.binary_evaluators.put(Token.Type.EQUAL, (lhs, rhs) -> {
             if (lhs.getType() != Token.Type.IDENTIFIER) {
                 throw new Exception("expected identifier in assignment");
             }
@@ -52,7 +56,7 @@ public class PrecedenceClimbing {
             return rhs_val;
         });
 
-        this.bop_evaluators.put(Token.Type.PLUS_EQUAL, (lhs, rhs) -> {
+        this.binary_evaluators.put(Token.Type.PLUS_EQUAL, (lhs, rhs) -> {
             if (lhs.getType() != Token.Type.IDENTIFIER) {
                 throw new Exception("expected identifier in assignment");
             }
@@ -65,7 +69,7 @@ public class PrecedenceClimbing {
             return res;
         });
 
-        this.bop_evaluators.put(Token.Type.MINUS_EQUAL, (lhs, rhs) -> {
+        this.binary_evaluators.put(Token.Type.MINUS_EQUAL, (lhs, rhs) -> {
             if (lhs.getType() != Token.Type.IDENTIFIER) {
                 throw new Exception("expected identifier in assignment");
             }
@@ -78,7 +82,7 @@ public class PrecedenceClimbing {
             return res;
         });
 
-        this.bop_evaluators.put(Token.Type.MUL_EQUAL, (lhs, rhs) -> {
+        this.binary_evaluators.put(Token.Type.MUL_EQUAL, (lhs, rhs) -> {
             if (lhs.getType() != Token.Type.IDENTIFIER) {
                 throw new Exception("expected identifier in assignment");
             }
@@ -91,7 +95,7 @@ public class PrecedenceClimbing {
             return res;
         });
 
-        this.bop_evaluators.put(Token.Type.DIV_EQUAL, (lhs, rhs) -> {
+        this.binary_evaluators.put(Token.Type.DIV_EQUAL, (lhs, rhs) -> {
             if (lhs.getType() != Token.Type.IDENTIFIER) {
                 throw new Exception("expected identifier in assignment");
             }
@@ -106,8 +110,6 @@ public class PrecedenceClimbing {
     }
 
     private void init_precedence() {
-        // TODO add ++ -- etc
-
         this.precedence.put(Token.Type.UNARY_INC, 0);
         this.precedence.put(Token.Type.UNARY_DEC, 0);
 
@@ -127,7 +129,7 @@ public class PrecedenceClimbing {
 
     private double evaluate_token(Token token) throws Exception {
         if (token.getType() == Token.Type.NUMBER) {
-            return ((NumberToken) (token)).getValue();
+            return ((ValueToken) (token)).getValue();
         }
 
         if (token.getType() == Token.Type.IDENTIFIER) {
@@ -147,12 +149,10 @@ public class PrecedenceClimbing {
 
         var lhs = this.tokenizer.next();
 
-        this.open_parentheses = 0;
+        this.parentheses_validator = new ParenthesesValidator();
 
         var res = this.parseExpression(lhs, this.max_precedence);
-        if (this.open_parentheses > 0) {
-            throw new Exception("invalid parentheses: unclosed parentheses detected");
-        }
+        this.parentheses_validator.validate();
 
         return res;
     }
@@ -160,28 +160,25 @@ public class PrecedenceClimbing {
 
     private Token parseExpression(Token lhs, int max_precedence) throws Exception {
         if (lhs.getType() == Token.Type.LEFT_PARENTHESIS) {
-            this.open_parentheses++;
+            this.parentheses_validator.onOpen();
             lhs = parseExpression(this.tokenizer.next(), this.max_precedence);
         }
 
         // ++VAR
         if (ParsingUtil.isUnaryOperator(lhs)) {
-            lhs = this.unary_op.Evaluate(this.tokenizer.next(), lhs, false);
+            lhs = this.unary_evaluator.Evaluate(this.tokenizer.next(), lhs, false);
         }
 
         var lookahead = this.tokenizer.peekNext();
 
         if (lookahead.getType() == Token.Type.RIGHT_PARENTHESIS) {
-            if (this.open_parentheses == 0) {
-                throw new Exception("invalid parentheses: no matching close for open");
-            }
-            this.open_parentheses--;
+            this.parentheses_validator.onClose();
             this.tokenizer.advance(); // TODO: update lookahead?
         }
 
         // VAR++
         if (lhs.getType() == Token.Type.IDENTIFIER && ParsingUtil.isUnaryOperator(lookahead)) {
-            lhs = this.unary_op.Evaluate(lhs, lookahead, true);
+            lhs = this.unary_evaluator.Evaluate(lhs, lookahead, true);
             this.tokenizer.advance();
             lookahead = this.tokenizer.peekNext();
         }
@@ -193,13 +190,13 @@ public class PrecedenceClimbing {
             var rhs = this.tokenizer.next();
 
             if (rhs.getType() == Token.Type.LEFT_PARENTHESIS) {
-                this.open_parentheses++;
+                this.parentheses_validator.onOpen();
                 rhs = parseExpression(this.tokenizer.next(), this.max_precedence);
             }
 
             // ++VAR
             if (ParsingUtil.isUnaryOperator(rhs)) {
-                rhs = this.unary_op.Evaluate(this.tokenizer.next(), rhs, false);
+                rhs = this.unary_evaluator.Evaluate(this.tokenizer.next(), rhs, false);
                 // TODO: call?
             }
 
@@ -209,7 +206,7 @@ public class PrecedenceClimbing {
 
             // VAR++
             if (rhs.getType() == Token.Type.IDENTIFIER && ParsingUtil.isUnaryOperator(lookahead)) {
-                rhs = this.unary_op.Evaluate(rhs, lookahead, true);
+                rhs = this.unary_evaluator.Evaluate(rhs, lookahead, true);
                 this.tokenizer.advance();
                 lookahead = this.tokenizer.peekNext();
             }
@@ -221,13 +218,10 @@ public class PrecedenceClimbing {
                 lookahead = this.tokenizer.peekNext();
             }
 
-            lhs = new NumberToken(this.bop_evaluators.get(op.getType()).evaluate(lhs, rhs));
+            lhs = new ValueToken(this.binary_evaluators.get(op.getType()).evaluate(lhs, rhs));
 
             if (lookahead.getType() == Token.Type.RIGHT_PARENTHESIS) {
-                if (this.open_parentheses == 0) {
-                    throw new Exception("invalid parentheses: no matching close for open");
-                }
-                this.open_parentheses--;
+                this.parentheses_validator.onClose();
                 this.tokenizer.advance();
             }
         }

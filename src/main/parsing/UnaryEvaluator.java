@@ -1,7 +1,7 @@
 package main.parsing;
 
 import main.tokenization.IdentifierToken;
-import main.tokenization.NumberToken;
+import main.tokenization.ValueToken;
 import main.tokenization.Token;
 
 import java.util.Map;
@@ -28,7 +28,7 @@ class UnaryEvaluator {
         switch (op.getType()) {
             case UNARY_INC -> delta = 1;
             case UNARY_DEC -> delta = -1;
-            default -> throw new Exception("Unexpected value: " + op.getType());
+            default -> throw new Exception("unary evaluation failed: unexpected value: " + op.getType());
         }
 
         this.context.put(var.getID(), value + delta);
@@ -37,7 +37,7 @@ class UnaryEvaluator {
             value += delta;
         }
 
-        return new NumberToken(value);
+        return new ValueToken(value);
     }
 
 }
