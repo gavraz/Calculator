@@ -12,6 +12,11 @@ class Factory {
     private Factory() {
 
         this.doubleSymbolGetter = (input, i) -> {
+            int consumed = 0;
+            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
+                i++;
+                consumed++;
+            }
             if (i + 1 >= input.length()) {
                 return TryGetter.Result.None;
             }
@@ -32,10 +37,15 @@ class Factory {
             if (type == null) {
                 return TryGetter.Result.None;
             }
-            return new TryGetter.Result(new Token(type), 2);
+            return new TryGetter.Result(new Token(type), consumed+2);
         };
 
         this.singleSymbolGetter = (input, i) -> {
+            int consumed = 0;
+            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
+                i++;
+                consumed++;
+            }
             if (i >= input.length()) {
                 return TryGetter.Result.None;
             }
@@ -55,10 +65,15 @@ class Factory {
             if (type == null) {
                 return TryGetter.Result.None;
             }
-            return new TryGetter.Result(new Token(type), 1);
+            return new TryGetter.Result(new Token(type), consumed+1);
         };
 
         this.numberGetter = (input, i) -> {
+            int consumed = 0;
+            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
+                i++;
+                consumed++;
+            }
             int begin = i;
             for (; i < input.length(); i++) {
                 var c = input.charAt(i);
@@ -76,11 +91,16 @@ class Factory {
 
             return new TryGetter.Result(
                     new NumberToken(Double.parseDouble(input.substring(begin, i))),
-                    i - begin
+                    consumed + i - begin
             );
         };
 
         this.identifierGetter = (input, i) -> {
+            int consumed = 0;
+            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
+                i++;
+                consumed++;
+            }
             if (!CharUtil.isAlphabet(input.charAt(i))) {
                 return null;
             }
@@ -102,7 +122,7 @@ class Factory {
 
             return new TryGetter.Result(
                     new IdentifierToken(input.substring(begin, i)),
-                    i - begin
+                    consumed+i - begin
             );
         };
     }
@@ -118,6 +138,9 @@ class Factory {
     // TODO: document the major optimization: c_str + state machine!
 
     public TryGetter.Result TryGet(String line, int i) {
+
+        // TODO: spaces end of line
+
         if (i >= line.length()) {
             return new TryGetter.Result(Token.TERM, 0);
         }

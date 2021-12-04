@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class CalculatorTest {
     @Test
@@ -66,5 +69,90 @@ public class CalculatorTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        input = new ByteArrayInputStream("x=(1*3+1)+(2+2)*(3-5)".getBytes());
+        try {
+            calc.evaluate(new InputStreamReader(input));
+            assertEquals("(x=-4.0)", calc.output());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void TestBadParentheses() {
+        Calculator calc = new Calculator();
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=(2)+((3".getBytes())));
+            fail("should have failed: expected exception");
+        } catch (Exception ignored) {
+        }
+
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=(2)+((3)))".getBytes())));
+            fail("should have failed: expected exception");
+        } catch (Exception ignored) {
+        }
+
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=)(".getBytes())));
+            fail("should have failed: expected exception");
+        } catch (Exception ignored) {
+        }
+
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=(((((4)))))+(1)".getBytes())));
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
+    public void TestIncDec() {
+        double x = 5;
+        double y = 2;
+        double z = x++ + y++;
+
+        var input = new ByteArrayInputStream("x=5\ny=2\nz=x++ + y++".getBytes());
+        Calculator calc = new Calculator();
+        try {
+            calc.evaluate(new InputStreamReader(input));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Map<String, Double> exp = Map.of("x", x, "y", y, "z", z);
+        assertEquals(exp, calc.getVars());
+
+        calc = new Calculator();
+        x = 1;
+        y = (x++);
+        z = x++;
+        input = new ByteArrayInputStream("x=1\ny=(x++)\nz=x++".getBytes());
+        try {
+            calc.evaluate(new InputStreamReader(input));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        exp = Map.of("x", x, "y", y, "z", z);
+        assertEquals(exp, calc.getVars());
+    }
+
+    @Test
+    public void TestBebe() {
+        double x = 7;
+        double y = --x*3+5*(x++*2)/4;
+        double z = x++*(--y+2)-5*x+y++;
+        double w = 2+3*x++;
+
+        var input = new ByteArrayInputStream("x=7\ny=--x*3+5*(x++*2)/4\nz=x++*(--y+2)-5*x+y++\nw=2+3*x++".getBytes());
+        Calculator calc = new Calculator();
+        try {
+            calc.evaluate(new InputStreamReader(input));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Map<String, Double> exp = Map.of("x", x, "y", y, "z", z, "w", w);
+        assertEquals(exp, calc.getVars());
     }
 }

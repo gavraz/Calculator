@@ -18,9 +18,11 @@ public class Calculator {
         Scanner scanner = new Scanner(input);
         PrecedenceClimbing parser = new PrecedenceClimbing(this.vars);
 
-        while (scanner.hasNext()) {
-            parser.parse(scanner.next());
+        while (scanner.hasNextLine()) {
+            parser.parse(scanner.nextLine());
         }
+
+        scanner.close();
     }
 
     public String output() {
@@ -41,6 +43,10 @@ public class Calculator {
         builder.append(')');
 
         return builder.toString();
+    }
+
+    public Map<String, Double> getVars() {
+        return this.vars;
     }
 
     @Override

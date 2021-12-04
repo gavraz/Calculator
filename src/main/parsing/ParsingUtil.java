@@ -19,9 +19,9 @@ public class ParsingUtil {
         throw new Exception("parsing failed");
     }
 
-    static boolean isAssignmentOperator(Token token) {
+    static boolean isUnaryOperator(Token token) {
         return switch (token.getType()) {
-            case EQUAL, PLUS_EQUAL, MINUS_EQUAL, MUL_EQUAL, DIV_EQUAL -> true;
+            case UNARY_INC, UNARY_DEC -> true;
             default -> false;
         };
     }
