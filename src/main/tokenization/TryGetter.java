@@ -1,8 +1,5 @@
 package main.tokenization;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-
 interface TryGetter {
     // TODO ToAsk: is there any new java trick that can bypass this? filling the GC with garbage...
     class Result{
