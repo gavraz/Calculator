@@ -1,5 +1,9 @@
 package main;
 
+import main.parsing.EvaluationException;
+import main.parsing.ParsingException;
+import main.tokenization.TokenizationException;
+
 import java.io.InputStreamReader;
 
 class Main {
@@ -9,7 +13,7 @@ class Main {
 
         try {
             calc.evaluate(stdin);
-        } catch (Exception e) {
+        } catch (TokenizationException | EvaluationException | ParsingException e) {
             System.out.printf("Could not evaluate expression: %s\n", e.getMessage());
             return;
         }

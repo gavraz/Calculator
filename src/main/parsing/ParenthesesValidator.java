@@ -1,5 +1,7 @@
 package main.parsing;
 
+import main.tokenization.TokenizationException;
+
 /**
  * ParenthesesValidator can track and validate parentheses.
  */
@@ -23,11 +25,11 @@ public class ParenthesesValidator {
     /**
      * Tracks a closing parentheses.
      *
-     * @throws Exception if the closing parentheses break validation.
+     * @throws TokenizationException if the closing parentheses break validation.
      */
-    public void onClose() throws Exception {
+    public void onClose() throws TokenizationException {
         if (this.open_count == 0) {
-            throw new Exception("invalid parentheses: closing parentheses has no matching opening");
+            throw new TokenizationException("invalid parentheses: closing parentheses has no matching opening");
         }
         this.open_count--;
     }
@@ -35,11 +37,11 @@ public class ParenthesesValidator {
     /**
      * Validates the parentheses.
      *
-     * @throws Exception if validation does not hold.
+     * @throws TokenizationException if validation does not hold.
      */
-    public void validate() throws Exception {
+    public void validate() throws TokenizationException {
         if (this.open_count > 0) {
-            throw new Exception("invalid parentheses: unclosed parentheses detected");
+            throw new TokenizationException("invalid parentheses: unclosed parentheses detected");
         }
     }
 }

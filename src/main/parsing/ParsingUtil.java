@@ -3,14 +3,14 @@ package main.parsing;
 import main.tokenization.Token;
 
 public class ParsingUtil {
-    static void expect(Token token, Token.Type... types) throws Exception {
+    static void expect(Token token, Token.Type... types) throws ParsingException {
         for (Token.Type type : types) {
             if (token.getType() == type) {
                 return;
             }
         }
 
-        throw new Exception("parsing failed");
+        throw new ParsingException(String.format("parsing failed: %s does not match any of the expected types", token.toString()));
     }
 
     static boolean isUnaryOperator(Token token) {

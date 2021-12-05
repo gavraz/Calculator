@@ -139,9 +139,9 @@ public class CalculatorTest {
     @Test
     public void TestBebe() {
         double x = 7;
-        double y = --x*3+5*(x++*2)/4;
-        double z = x++*(--y+2)-5*x+y++;
-        double w = 2+3*x++;
+        double y = --x * 3 + 5 * (x++ * 2) / 4;
+        double z = x++ * (--y + 2) - 5 * x + y++;
+        double w = 2 + 3 * x++;
 
         var input = new ByteArrayInputStream("x=7\ny=--x*3+5*(x++*2)/4\nz=x++*(--y+2)-5*x+y++\nw=2+3*x++".getBytes());
         Calculator calc = new Calculator();

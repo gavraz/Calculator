@@ -1,8 +1,8 @@
 package main.parsing;
 
 import main.tokenization.IdentifierToken;
-import main.tokenization.ValueToken;
 import main.tokenization.Token;
+import main.tokenization.ValueToken;
 
 import java.util.Map;
 
@@ -24,28 +24,28 @@ class UnaryEvaluator {
     /**
      * Evaluates the token with respect to the provided operation.
      *
-     * @param operand the operand token.
-     * @param operation the unary operation.
+     * @param operand             the operand token.
+     * @param operation           the unary operation.
      * @param evaluate_to_operand is true iff the operation should be evaluated to the operand token.
      * @return the value of the unary operation on the provided operand with respect to the evaluate_to_operand.
-     * @throws Exception if the operation could not be evaluated with respect to the operand.
+     * @throws EvaluationException if the operation could not be evaluated with respect to the operand.
      */
-    public Token Evaluate(Token operand, Token operation, boolean evaluate_to_operand) throws Exception {
+    public Token Evaluate(Token operand, Token operation, boolean evaluate_to_operand) throws EvaluationException {
         var var = (IdentifierToken) operand;
         if (operand.getType() != Token.Type.IDENTIFIER) {
-            throw new Exception("unary evaluation failed: expected identifier");
+            throw new EvaluationException("unary evaluation failed: expected identifier");
         }
 
         var value = this.env.get(var.getID());
         if (value == null) {
-            throw new Exception("unary evaluation failed: variable used prior declaration");
+            throw new EvaluationException("unary evaluation failed: variable used prior declaration");
         }
 
         double delta;
         switch (operation.getType()) {
             case UNARY_INC -> delta = 1;
             case UNARY_DEC -> delta = -1;
-            default -> throw new Exception("unary evaluation failed: unexpected value: " + operation.getType());
+            default -> throw new EvaluationException("unary evaluation failed: unexpected value: " + operation.getType());
         }
 
         this.env.put(var.getID(), value + delta);
@@ -54,7 +54,7 @@ class UnaryEvaluator {
             return new ValueToken(value);
         }
 
-        return new ValueToken(value+delta);
+        return new ValueToken(value + delta);
     }
 
 }

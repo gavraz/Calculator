@@ -18,7 +18,7 @@ interface Constructor {
      * Tries to construct the next token from str at the given position.
      *
      * @param str the string to construct from.
-     * @param i the position to construct at.
+     * @param i   the position to construct at.
      * @return a Result representing the constructed token and the number of consumed characters.
      */
     Result tryConstructNext(String str, int i);

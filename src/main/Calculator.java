@@ -1,6 +1,9 @@
 package main;
 
+import main.parsing.EvaluationException;
+import main.parsing.ParsingException;
 import main.parsing.PrecedenceClimbing;
+import main.tokenization.TokenizationException;
 
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -24,9 +27,9 @@ public class Calculator {
      * Evaluates the provided expression.
      *
      * @param input the expression as stream.
-     * @throws Exception if evaluation fails.
+     * @throws EvaluationException if evaluation fails.
      */
-    public void evaluate(InputStreamReader input) throws Exception {
+    public void evaluate(InputStreamReader input) throws EvaluationException, TokenizationException, ParsingException {
         Scanner scanner = new Scanner(input);
         PrecedenceClimbing parser = new PrecedenceClimbing(this.vars);
 

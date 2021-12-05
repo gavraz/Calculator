@@ -1,6 +1,7 @@
 package main.tokenization;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Tokenizer exposes an iterator-like interface to go over the tokens of the input.
@@ -26,16 +27,16 @@ public class Tokenizer {
      * Peeks for the next token without advancing to the next token.
      *
      * @return the next token if any; Token.Term otherwise.
-     * @throws Exception if tokenization fails.
+     * @throws TokenizationException if tokenization fails.
      */
-    public Token peekNext() throws Exception {
+    public Token peekNext() throws TokenizationException {
         if (this.next != null) {
             return this.next;
         }
 
         Constructor.Result result = TokenFactory.instance().tryConstructNext(this.input, this.i);
-        if (result == null || result.token == null || result == Constructor.Result.None) {
-            throw new Exception("tokenization failed: could not tokenize next token");
+        if (result == null || result.token == null || result == Constructor.Result.None) { // TODO: avoid this behavior
+            throw new TokenizationException("no matching token");
         }
         this.next = result.token;
         this.last_consumed = result.consumed;
@@ -46,9 +47,9 @@ public class Tokenizer {
      * Advances and returns the next token.
      *
      * @return the next token if any; Term otherwise.
-     * @throws Exception if tokenization fails.
+     * @throws TokenizationException if tokenization fails.
      */
-    public Token next() throws Exception {
+    public Token next() throws TokenizationException {
         Token current = this.peekNext();
         this.advance();
 
@@ -80,7 +81,7 @@ public class Tokenizer {
             Token token = null;
             try {
                 token = tokenizer.next();
-            } catch (Exception e) {
+            } catch (TokenizationException e) {
                 e.printStackTrace();
             }
             tokens.add(token);

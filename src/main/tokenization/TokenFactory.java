@@ -38,7 +38,7 @@ class TokenFactory {
             if (type == null) {
                 return Constructor.Result.None;
             }
-            return new Constructor.Result(new Token(type), consumed+2);
+            return new Constructor.Result(new Token(type), consumed + 2);
         };
 
         this.singleSymbolGetter = (input, i) -> {
@@ -66,7 +66,7 @@ class TokenFactory {
             if (type == null) {
                 return Constructor.Result.None;
             }
-            return new Constructor.Result(new Token(type), consumed+1);
+            return new Constructor.Result(new Token(type), consumed + 1);
         };
 
         this.numberGetter = (input, i) -> {
@@ -123,7 +123,7 @@ class TokenFactory {
 
             return new Constructor.Result(
                     new IdentifierToken(input.substring(begin, i)),
-                    consumed+i - begin
+                    consumed + i - begin
             );
         };
     }
@@ -145,7 +145,7 @@ class TokenFactory {
      * Tries to construct the next token from the provided string at the given position.
      *
      * @param str the string to construct from.
-     * @param i the position to try to construct at.
+     * @param i   the position to try to construct at.
      * @return a Construct.Result which is the constructed token and the number of consumed characters.
      */
     public Constructor.Result tryConstructNext(String str, int i) {
@@ -160,7 +160,7 @@ class TokenFactory {
         ///     Inc/Dec; Assignment OPs; Arithmetic OPs;
         ///     Number; Variable;
         ///     Parentheses;
-        /// TWO SYMBOLS --> SINGLE SYMBOL --> NUM --> VAR
+        /// DOUBLE SYMBOLS --> SINGLE SYMBOL --> NUM --> VAR
 
         var token = this.doubleSymbolGetter.tryConstructNext(str, i);
         if (token.token != null) {

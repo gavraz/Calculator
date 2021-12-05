@@ -12,7 +12,7 @@ interface BinaryEvaluator {
      * @param lhs the left hand-side operand.
      * @param rhs the right hand-side operand.
      * @return the value of performing a binary operation on the operands.
-     * @throws Exception if the operation could not be evaluated.
+     * @throws EvaluationException if the operation could not be evaluated.
      */
-    double evaluate(Token lhs, Token rhs) throws Exception;
+    double evaluate(Token lhs, Token rhs) throws EvaluationException, ParsingException;
 }
