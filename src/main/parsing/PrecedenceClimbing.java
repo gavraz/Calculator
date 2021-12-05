@@ -14,24 +14,32 @@ import java.util.Map;
  */
 public class PrecedenceClimbing {
     private final UnaryEvaluator unary_evaluator;
-    private final Map<Token.Type, Evaluator> binary_evaluators; // a collection of all binary operator evaluators
+    private final Map<Token.Type, BinaryEvaluator> binary_evaluators; // a collection of all binary operator evaluators
     private final Map<Token.Type, Integer> precedence; // lower precedes higher
-    private final Map<String, Double> vars;
+    private final Map<String, Double> env;
     private Tokenizer tokenizer;
     private int max_precedence;
     private ParenthesesValidator parentheses_validator;
 
+    /**
+     * Constructs a new empty instance of the parser.
+     */
     public PrecedenceClimbing() {
         this(new HashMap<>());
     }
 
-    public PrecedenceClimbing(Map<String, Double> vars) {
+    /**
+     * Constructs a new instance with the provided environment.
+     *
+     * @param env the environment be used.
+     */
+    public PrecedenceClimbing(Map<String, Double> env) {
         this.binary_evaluators = new HashMap<>();
         this.precedence = new HashMap<>();
-        this.vars = vars;
+        this.env = env;
         this.tokenizer = null;
 
-        this.unary_evaluator = new UnaryEvaluator(this.vars);
+        this.unary_evaluator = new UnaryEvaluator(this.env);
 
         init_binary_evaluators();
         init_precedence();
@@ -39,10 +47,10 @@ public class PrecedenceClimbing {
 
     private void init_binary_evaluators() {
         // TODO: consider bound checks
-        this.binary_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> evaluate_token(lhs) + evaluate_token(rhs));
-        this.binary_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> evaluate_token(lhs) - evaluate_token(rhs));
-        this.binary_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> evaluate_token(lhs) * evaluate_token(rhs));
-        this.binary_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> evaluate_token(lhs) / evaluate_token(rhs)); // TODO DIV BY ZERO?
+        this.binary_evaluators.put(Token.Type.OPERATOR_PLUS, (lhs, rhs) -> try_evaluate_token(lhs) + try_evaluate_token(rhs));
+        this.binary_evaluators.put(Token.Type.OPERATOR_MINUS, (lhs, rhs) -> try_evaluate_token(lhs) - try_evaluate_token(rhs));
+        this.binary_evaluators.put(Token.Type.OPERATOR_MUL, (lhs, rhs) -> try_evaluate_token(lhs) * try_evaluate_token(rhs));
+        this.binary_evaluators.put(Token.Type.OPERATOR_DIV, (lhs, rhs) -> try_evaluate_token(lhs) / try_evaluate_token(rhs)); // TODO DIV BY ZERO?
 
         this.binary_evaluators.put(Token.Type.EQUAL, (lhs, rhs) -> {
             if (lhs.getType() != Token.Type.IDENTIFIER) {
@@ -50,8 +58,8 @@ public class PrecedenceClimbing {
             }
 
             var lhs_var = (IdentifierToken) lhs;
-            var rhs_val = evaluate_token(rhs);
-            vars.put(lhs_var.getID(), rhs_val);
+            var rhs_val = try_evaluate_token(rhs);
+            env.put(lhs_var.getID(), rhs_val);
 
             return rhs_val;
         });
@@ -62,9 +70,9 @@ public class PrecedenceClimbing {
             }
 
             var lhs_var = (IdentifierToken) lhs;
-            var rhs_val = evaluate_token(rhs);
-            var res = evaluate_token(lhs_var) + rhs_val;
-            vars.put(lhs_var.getID(), res);
+            var rhs_val = try_evaluate_token(rhs);
+            var res = try_evaluate_token(lhs_var) + rhs_val;
+            env.put(lhs_var.getID(), res);
 
             return res;
         });
@@ -75,9 +83,9 @@ public class PrecedenceClimbing {
             }
 
             var lhs_var = (IdentifierToken) lhs;
-            var rhs_val = evaluate_token(rhs);
-            var res = evaluate_token(lhs_var) - rhs_val;
-            vars.put(lhs_var.getID(), res);
+            var rhs_val = try_evaluate_token(rhs);
+            var res = try_evaluate_token(lhs_var) - rhs_val;
+            env.put(lhs_var.getID(), res);
 
             return res;
         });
@@ -88,9 +96,9 @@ public class PrecedenceClimbing {
             }
 
             var lhs_var = (IdentifierToken) lhs;
-            var rhs_val = evaluate_token(rhs);
-            var res = evaluate_token(lhs_var) * rhs_val;
-            vars.put(lhs_var.getID(), res);
+            var rhs_val = try_evaluate_token(rhs);
+            var res = try_evaluate_token(lhs_var) * rhs_val;
+            env.put(lhs_var.getID(), res);
 
             return res;
         });
@@ -101,9 +109,9 @@ public class PrecedenceClimbing {
             }
 
             var lhs_var = (IdentifierToken) lhs;
-            var rhs_val = evaluate_token(rhs);
-            var res = evaluate_token(lhs_var) / rhs_val;
-            vars.put(lhs_var.getID(), res);
+            var rhs_val = try_evaluate_token(rhs);
+            var res = try_evaluate_token(lhs_var) / rhs_val;
+            env.put(lhs_var.getID(), res);
 
             return res;
         });
@@ -113,7 +121,7 @@ public class PrecedenceClimbing {
         this.precedence.put(Token.Type.UNARY_INC, 0);
         this.precedence.put(Token.Type.UNARY_DEC, 0);
 
-        this.precedence.put(Token.Type.OPERATOR_MUL, 1); //??
+        this.precedence.put(Token.Type.OPERATOR_MUL, 1);
         this.precedence.put(Token.Type.OPERATOR_DIV, 1);
 
         this.precedence.put(Token.Type.OPERATOR_PLUS, 2);
@@ -127,13 +135,13 @@ public class PrecedenceClimbing {
         this.max_precedence = 3;
     }
 
-    private double evaluate_token(Token token) throws Exception {
+    private double try_evaluate_token(Token token) throws Exception {
         if (token.getType() == Token.Type.NUMBER) {
             return ((ValueToken) (token)).getValue();
         }
 
         if (token.getType() == Token.Type.IDENTIFIER) {
-            var result = this.vars.get(((IdentifierToken) (token)).getID());
+            var result = this.env.get(((IdentifierToken) (token)).getID());
             if (result == null) {
                 throw new Exception("variable used prior declaration");
             }
@@ -144,24 +152,11 @@ public class PrecedenceClimbing {
         throw new Exception("could not evaluate token");
     }
 
-    public Token parse(String input) throws Exception {
-        this.tokenizer = new Tokenizer(input);
-
-        var lhs = this.tokenizer.next();
-
-        this.parentheses_validator = new ParenthesesValidator();
-
-        var res = this.parseExpression(lhs, this.max_precedence);
-        this.parentheses_validator.validate();
-
-        return res;
-    }
-
-
-    private Token parseExpression(Token lhs, int max_precedence) throws Exception {
+    // parse_expression is the main function of the algorithm and is used to do the actual parsing.
+    private Token parse_expression(Token lhs, int max_precedence) throws Exception {
         if (lhs.getType() == Token.Type.LEFT_PARENTHESIS) {
             this.parentheses_validator.onOpen();
-            lhs = parseExpression(this.tokenizer.next(), this.max_precedence);
+            lhs = parse_expression(this.tokenizer.next(), this.max_precedence);
         }
 
         // ++VAR
@@ -191,7 +186,7 @@ public class PrecedenceClimbing {
 
             if (rhs.getType() == Token.Type.LEFT_PARENTHESIS) {
                 this.parentheses_validator.onOpen();
-                rhs = parseExpression(this.tokenizer.next(), this.max_precedence);
+                rhs = parse_expression(this.tokenizer.next(), this.max_precedence);
             }
 
             // ++VAR
@@ -214,7 +209,7 @@ public class PrecedenceClimbing {
             while (
                     ParsingUtil.isBinaryOperator(lookahead) &&
                             this.precedence.get(lookahead.getType()) < this.precedence.get(op.getType())) {
-                rhs = parseExpression(rhs, this.precedence.get(op.getType()) - 1);
+                rhs = parse_expression(rhs, this.precedence.get(op.getType()) - 1);
                 lookahead = this.tokenizer.peekNext();
             }
 
@@ -227,5 +222,25 @@ public class PrecedenceClimbing {
         }
 
         return lhs;
+    }
+
+    /**
+     * Parses the provided expression.
+     *
+     * @param expression the expression to parse.
+     * @return the token that represents the result of the evaluation.
+     * @throws Exception if any error is encountered during the parsing process.
+     */
+    public Token parse(String expression) throws Exception {
+        this.tokenizer = new Tokenizer(expression);
+
+        var lhs = this.tokenizer.next();
+
+        this.parentheses_validator = new ParenthesesValidator();
+
+        var res = this.parse_expression(lhs, this.max_precedence);
+        this.parentheses_validator.validate();
+
+        return res;
     }
 }

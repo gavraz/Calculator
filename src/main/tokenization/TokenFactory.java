@@ -1,16 +1,17 @@
 package main.tokenization;
 
+/**
+ * TokenFactory is a singleton that can construct tokens.
+ */
+class TokenFactory {
+    private static TokenFactory instance;
 
-class Factory {
-    private static Factory instance;
-    private final TryGetter doubleSymbolGetter;
-    private final TryGetter singleSymbolGetter;
-    private final TryGetter numberGetter;
-    private final TryGetter identifierGetter;
+    private final Constructor doubleSymbolGetter;
+    private final Constructor singleSymbolGetter;
+    private final Constructor numberGetter;
+    private final Constructor identifierGetter;
 
-    // TODO add ut i++; i+++; i++ +3...
-    private Factory() {
-
+    private TokenFactory() {
         this.doubleSymbolGetter = (input, i) -> {
             int consumed = 0;
             while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
@@ -18,7 +19,7 @@ class Factory {
                 consumed++;
             }
             if (i + 1 >= input.length()) {
-                return TryGetter.Result.None;
+                return Constructor.Result.None;
             }
             String symbols = "" + input.charAt(i) + input.charAt(i + 1);
 
@@ -35,9 +36,9 @@ class Factory {
             ;
 
             if (type == null) {
-                return TryGetter.Result.None;
+                return Constructor.Result.None;
             }
-            return new TryGetter.Result(new Token(type), consumed+2);
+            return new Constructor.Result(new Token(type), consumed+2);
         };
 
         this.singleSymbolGetter = (input, i) -> {
@@ -47,7 +48,7 @@ class Factory {
                 consumed++;
             }
             if (i >= input.length()) {
-                return TryGetter.Result.None;
+                return Constructor.Result.None;
             }
 
             Token.Type type;
@@ -63,9 +64,9 @@ class Factory {
             }
 
             if (type == null) {
-                return TryGetter.Result.None;
+                return Constructor.Result.None;
             }
-            return new TryGetter.Result(new Token(type), consumed+1);
+            return new Constructor.Result(new Token(type), consumed+1);
         };
 
         this.numberGetter = (input, i) -> {
@@ -86,10 +87,10 @@ class Factory {
             }
 
             if (begin == i) {
-                return TryGetter.Result.None;
+                return Constructor.Result.None;
             }
 
-            return new TryGetter.Result(
+            return new Constructor.Result(
                     new ValueToken(Double.parseDouble(input.substring(begin, i))),
                     consumed + i - begin
             );
@@ -117,32 +118,42 @@ class Factory {
             }
 
             if (begin == i) {
-                return TryGetter.Result.None;
+                return Constructor.Result.None;
             }
 
-            return new TryGetter.Result(
+            return new Constructor.Result(
                     new IdentifierToken(input.substring(begin, i)),
                     consumed+i - begin
             );
         };
     }
 
-    public static Factory Instance() {
+    /**
+     * Returns the singleton factory instance.
+     *
+     * @return the TokenFactory instance
+     */
+    public static TokenFactory instance() {
         if (instance == null) {
-            instance = new Factory();
+            instance = new TokenFactory();
         }
 
         return instance;
     }
 
-    // TODO: document the major optimization: c_str + state machine!
-
-    public TryGetter.Result TryGet(String line, int i) {
+    /**
+     * Tries to construct the next token from the provided string at the given position.
+     *
+     * @param str the string to construct from.
+     * @param i the position to try to construct at.
+     * @return a Construct.Result which is the constructed token and the number of consumed characters.
+     */
+    public Constructor.Result tryConstructNext(String str, int i) {
 
         // TODO: spaces end of line
 
-        if (i >= line.length()) {
-            return new TryGetter.Result(Token.TERM, 0);
+        if (i >= str.length()) {
+            return new Constructor.Result(Token.TERM, 0);
         }
 
         /// Tokenization order:
@@ -151,21 +162,21 @@ class Factory {
         ///     Parentheses;
         /// TWO SYMBOLS --> SINGLE SYMBOL --> NUM --> VAR
 
-        var token = this.doubleSymbolGetter.tryGetNext(line, i);
+        var token = this.doubleSymbolGetter.tryConstructNext(str, i);
         if (token.token != null) {
             return token;
         }
 
-        token = this.singleSymbolGetter.tryGetNext(line, i);
+        token = this.singleSymbolGetter.tryConstructNext(str, i);
         if (token.token != null) {
             return token;
         }
 
-        token = this.numberGetter.tryGetNext(line, i);
+        token = this.numberGetter.tryConstructNext(str, i);
         if (token.token != null) {
             return token;
         }
 
-        return this.identifierGetter.tryGetNext(line, i);
+        return this.identifierGetter.tryConstructNext(str, i);
     }
 }

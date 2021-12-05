@@ -1,6 +1,12 @@
 package main.tokenization;
 
+/**
+ * Token represents a typed-token in the system.
+ */
 public class Token {
+    /**
+     * represents all types of tokens.
+     */
     public enum Type {
         IDENTIFIER,
         EQUAL, PLUS_EQUAL, MINUS_EQUAL, MUL_EQUAL, DIV_EQUAL,
@@ -9,6 +15,36 @@ public class Token {
         LEFT_PARENTHESIS, RIGHT_PARENTHESIS,
         NUMBER,
         Term,
+    }
+
+    public static final Token TERM = new Token(Type.Term); // the terminator token
+    private final Type type;
+
+    /**
+     * Constructs a new token.
+     *
+     * @param type the type of the token.
+     */
+    public Token(Type type) {
+        this.type = type;
+    }
+
+    /**
+     * Return the type of the token.
+     *
+     * @return the type of the token.
+     */
+    public Type getType() {
+        return this.type;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Token o)) {
+            return false;
+        }
+
+        return o.type == this.type;
     }
 
     private static String asString(Type t) {
@@ -30,26 +66,6 @@ public class Token {
             case NUMBER -> "number";
             case Term -> "term";
         };
-    }
-
-    public static final Token TERM = new Token(Type.Term);
-    private final Type type;
-
-    public Token(Type type) {
-        this.type = type;
-    }
-
-    public Type getType() {
-        return this.type;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof Token o)) {
-            return false;
-        }
-
-        return o.type == this.type;
     }
 
     @Override

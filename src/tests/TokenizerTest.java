@@ -9,7 +9,7 @@ public class TokenizerTest {
 
     @Test
     public void TestTokenizer() {
-        var tokens = Tokenizer.analyze("1+2");
+        var tokens = Tokenizer.tokenize("1+2");
         assertNotNull(tokens);
         assertEquals(4, tokens.size());
         assertEquals(new ValueToken(1), tokens.get(0));
@@ -20,14 +20,14 @@ public class TokenizerTest {
 
     @Test
     public void TestTokenizerUnary() {
-        var tokens = Tokenizer.analyze("x++");
+        var tokens = Tokenizer.tokenize("x++");
         assertNotNull(tokens);
         assertEquals(3, tokens.size());
         assertEquals(new IdentifierToken("x"), tokens.get(0));
         assertEquals(new Token(Token.Type.UNARY_INC), tokens.get(1));
         assertEquals(new Token(Token.Type.Term), tokens.get(2));
 
-        tokens = Tokenizer.analyze("x=1+ y++");
+        tokens = Tokenizer.tokenize("x=1+ y++");
         assertNotNull(tokens);
         assertEquals(7, tokens.size());
         assertEquals(new IdentifierToken("x"), tokens.get(0));

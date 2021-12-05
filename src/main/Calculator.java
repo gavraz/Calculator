@@ -7,13 +7,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * Calculator evaluates expressions and tracks its state.
+ */
 public class Calculator {
     private final Map<String, Double> vars;
 
+    /**
+     * Constructs an empty calculator.
+     */
     public Calculator() {
         this.vars = new HashMap<>();
     }
 
+    /**
+     * Evaluates the provided expression.
+     *
+     * @param input the expression as stream.
+     * @throws Exception if evaluation fails.
+     */
     public void evaluate(InputStreamReader input) throws Exception {
         Scanner scanner = new Scanner(input);
         PrecedenceClimbing parser = new PrecedenceClimbing(this.vars);
@@ -25,6 +37,11 @@ public class Calculator {
         scanner.close();
     }
 
+    /**
+     * Returns the internal state.
+     *
+     * @return the internal state as string.
+     */
     public String output() {
         StringBuilder builder = new StringBuilder();
         builder.append('(');
@@ -45,6 +62,11 @@ public class Calculator {
         return builder.toString();
     }
 
+    /**
+     * Returns the internal state.
+     *
+     * @return the internal state as a map.
+     */
     public Map<String, Double> getVars() {
         return this.vars;
     }

@@ -12,7 +12,7 @@ public class Tokenizer {
     private int last_consumed;
 
     /**
-     * Tokenizer constructs a new tokenizer for the given input.
+     * Constructs a new tokenizer for the given input.
      *
      * @param input the input to tokenize.
      */
@@ -23,27 +23,32 @@ public class Tokenizer {
     }
 
     /**
-     * peekNext peeks to the next token without advancing to the next token.
+     * Peeks for the next token without advancing to the next token.
      *
-     * @return the next token if any; Term otherwise.
+     * @return the next token if any; Token.Term otherwise.
+     * @throws Exception if tokenization fails.
      */
-    public Token peekNext() {
+    public Token peekNext() throws Exception {
         if (this.next != null) {
             return this.next;
         }
 
-        TryGetter.Result result = Factory.Instance().TryGet(this.input, this.i);
+        Constructor.Result result = TokenFactory.instance().tryConstructNext(this.input, this.i);
+        if (result == null || result.token == null || result == Constructor.Result.None) {
+            throw new Exception("tokenization failed: could not tokenize next token");
+        }
         this.next = result.token;
         this.last_consumed = result.consumed;
         return this.next;
     }
 
     /**
-     * next advances to the next token.
+     * Advances and returns the next token.
      *
      * @return the next token if any; Term otherwise.
+     * @throws Exception if tokenization fails.
      */
-    public Token next() {
+    public Token next() throws Exception {
         Token current = this.peekNext();
         this.advance();
 
@@ -51,8 +56,7 @@ public class Tokenizer {
     }
 
     /**
-     * advance to the next token.
-     * if the token
+     * Advances to the next token.
      */
     public void advance() {
         this.i += this.last_consumed;
@@ -63,17 +67,22 @@ public class Tokenizer {
     }
 
     /**
-     * analyze a given string for tokenization.
+     * Tokenizes a given string.
      *
      * @param line the input to tokenize.
      * @return the list of tokens.
      */
-    public static List<Token> analyze(String line) {
+    public static List<Token> tokenize(String line) {
         Tokenizer tokenizer = new Tokenizer(line);
         var tokens = new LinkedList<Token>();
 
         while (true) {
-            var token = tokenizer.next();
+            Token token = null;
+            try {
+                token = tokenizer.next();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             tokens.add(token);
 
             if (token != null && token.getType() == Token.Type.Term) {
