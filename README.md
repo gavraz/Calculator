@@ -25,16 +25,12 @@
 
 ### Future Optimizations
 
-1. A state machine tokenizer instead of the factory (disadvantage: less clear).
-2. Consider a c-like string implementation to improve tokenization.
-3. The Constructor.Result in the tokenization factory burdens the GC. We can partially bypass it with a reference to a
-   position.
+Tokenization Factory:
+1. A state machine tokenizer (disadvantage: less clear).
+2. Consider pattern matching algorithms.
+3. The Constructor.Result burdens the GC. We can partially bypass it with a reference to a position.
 
 ### Notes
 
 1. ParenthesesValidator can be generalized to describe a simple open-close matcher.
 2. We can use custom exceptions for tighter testing.
-
-### Known Issues
-
-1. The calculator is agnostic to spaces and will accept "i+++++i"

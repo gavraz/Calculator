@@ -13,4 +13,11 @@ public class CharUtil {
         return (c >= 'a' && c <= 'z') ||
                 (c >= 'A' && c <= 'Z');
     }
+
+    public static boolean isOperator(char c) {
+        return switch (c) {
+            case '+', '-', '/', '*' -> true;
+            default -> false;
+        };
+    }
 }

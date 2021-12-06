@@ -6,18 +6,38 @@ package main.tokenization;
 class TokenFactory {
     private static TokenFactory instance;
 
-    private final Constructor doubleSymbolGetter;
+    private final Constructor doubleSymbolUnaryGetter;
+    private final Constructor doubleSymbolAssignmentGetter;
     private final Constructor singleSymbolGetter;
     private final Constructor numberGetter;
     private final Constructor identifierGetter;
 
     private TokenFactory() {
-        this.doubleSymbolGetter = (input, i) -> {
-            int consumed = 0;
-            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
-                i++;
-                consumed++;
+        this.doubleSymbolUnaryGetter = (input, i) -> {
+            if (i + 1 >= input.length()) {
+                return Constructor.Result.None;
             }
+            String symbols = "" + input.charAt(i) + input.charAt(i + 1);
+
+            Token.Type type;
+            switch (symbols) {
+                case "++" -> type = Token.Type.UNARY_INC;
+                case "--" -> type = Token.Type.UNARY_DEC;
+                default -> type = null;
+            }
+
+            if (type == null) {
+                return Constructor.Result.None;
+            }
+
+            if (i + 2 < input.length() && CharUtil.isOperator(input.charAt(i + 2))) {
+                throw new TokenizationException("unexpected operator after double-symbol operator");
+            }
+
+            return new Constructor.Result(new Token(type), 2);
+        };
+
+        this.doubleSymbolAssignmentGetter = (input, i) -> {
             if (i + 1 >= input.length()) {
                 return Constructor.Result.None;
             }
@@ -29,24 +49,16 @@ class TokenFactory {
                 case "-=" -> type = Token.Type.MINUS_EQUAL;
                 case "*=" -> type = Token.Type.MUL_EQUAL;
                 case "/=" -> type = Token.Type.DIV_EQUAL;
-                case "++" -> type = Token.Type.UNARY_INC;
-                case "--" -> type = Token.Type.UNARY_DEC;
                 default -> type = null;
             }
-            ;
 
             if (type == null) {
                 return Constructor.Result.None;
             }
-            return new Constructor.Result(new Token(type), consumed + 2);
+            return new Constructor.Result(new Token(type), 2);
         };
 
         this.singleSymbolGetter = (input, i) -> {
-            int consumed = 0;
-            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
-                i++;
-                consumed++;
-            }
             if (i >= input.length()) {
                 return Constructor.Result.None;
             }
@@ -66,15 +78,10 @@ class TokenFactory {
             if (type == null) {
                 return Constructor.Result.None;
             }
-            return new Constructor.Result(new Token(type), consumed + 1);
+            return new Constructor.Result(new Token(type), 1);
         };
 
         this.numberGetter = (input, i) -> {
-            int consumed = 0;
-            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
-                i++;
-                consumed++;
-            }
             int begin = i;
             for (; i < input.length(); i++) {
                 var c = input.charAt(i);
@@ -92,16 +99,11 @@ class TokenFactory {
 
             return new Constructor.Result(
                     new ValueToken(Double.parseDouble(input.substring(begin, i))),
-                    consumed + i - begin
+                    i - begin
             );
         };
 
         this.identifierGetter = (input, i) -> {
-            int consumed = 0;
-            while (i < input.length() && CharUtil.isWhitespace(input.charAt(i))) {
-                i++;
-                consumed++;
-            }
             if (!CharUtil.isAlphabet(input.charAt(i))) {
                 return null;
             }
@@ -123,9 +125,19 @@ class TokenFactory {
 
             return new Constructor.Result(
                     new IdentifierToken(input.substring(begin, i)),
-                    consumed + i - begin
+                    i - begin
             );
         };
+    }
+
+    private static int consumeWhitespaces(String s, int i) {
+        int consumed = 0;
+        while (i < s.length() && CharUtil.isWhitespace(s.charAt(i))) {
+            i++;
+            consumed++;
+        }
+
+        return consumed;
     }
 
     /**
@@ -147,10 +159,12 @@ class TokenFactory {
      * @param str the string to construct from.
      * @param i   the position to try to construct at.
      * @return a Construct.Result which is the constructed token and the number of consumed characters.
+     * @throws TokenizationException if the string could not be tokenized.
      */
-    public Constructor.Result tryConstructNext(String str, int i) {
+    public Constructor.Result tryConstructNext(String str, int i) throws TokenizationException {
 
-        // TODO: spaces end of line
+        int consumed = consumeWhitespaces(str, i);
+        i += consumed;
 
         if (i >= str.length()) {
             return new Constructor.Result(Token.TERM, 0);
@@ -162,21 +176,37 @@ class TokenFactory {
         ///     Parentheses;
         /// DOUBLE SYMBOLS --> SINGLE SYMBOL --> NUM --> VAR
 
-        var token = this.doubleSymbolGetter.tryConstructNext(str, i);
+        var token = this.doubleSymbolUnaryGetter.tryConstructNext(str, i);
         if (token.token != null) {
+            token.consumed += consumed;
+            return token;
+        }
+
+        token = this.doubleSymbolAssignmentGetter.tryConstructNext(str, i);
+        if (token != Constructor.Result.None) {
+            token.consumed += consumed;
             return token;
         }
 
         token = this.singleSymbolGetter.tryConstructNext(str, i);
-        if (token.token != null) {
+        if (token != Constructor.Result.None) {
+            token.consumed += consumed;
             return token;
         }
 
         token = this.numberGetter.tryConstructNext(str, i);
-        if (token.token != null) {
+        if (token != Constructor.Result.None) {
+            token.consumed += consumed;
             return token;
         }
 
-        return this.identifierGetter.tryConstructNext(str, i);
+        token = this.identifierGetter.tryConstructNext(str, i);
+        token.consumed += consumed;
+
+        if (token != Constructor.Result.None) {
+            return token;
+        }
+
+        throw new TokenizationException("could not tokenize next token");
     }
 }

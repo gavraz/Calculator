@@ -19,7 +19,8 @@ interface Constructor {
      *
      * @param str the string to construct from.
      * @param i   the position to construct at.
-     * @return a Result representing the constructed token and the number of consumed characters.
+     * @return a Result representing the constructed token and the number of consumed characters; Result.None if it could not construct.
+     * @throws TokenizationException if an error occurred during tokenization.
      */
-    Result tryConstructNext(String str, int i);
+    Result tryConstructNext(String str, int i) throws TokenizationException;
 }

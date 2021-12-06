@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class CalculatorTest {
     @Test
-    public void TestCalculator() {
+    public void TestArithmetic() {
         Calculator calc = new Calculator();
         var input = new ByteArrayInputStream("x=5+3\ny=1+2*4\nz=x*x".getBytes());
 
@@ -117,6 +117,7 @@ public class CalculatorTest {
             calc.evaluate(new InputStreamReader(input));
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
         Map<String, Double> exp = Map.of("x", x, "y", y, "z", z);
@@ -131,9 +132,23 @@ public class CalculatorTest {
             calc.evaluate(new InputStreamReader(input));
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
         exp = Map.of("x", x, "y", y, "z", z);
         assertEquals(exp, calc.getVars());
+
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=1\ny=x+++5\n".getBytes())));
+            fail();
+
+        } catch (Exception ignored) {
+        }
+
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=1\ny=x++ +++x\n".getBytes())));
+            fail();
+        } catch (Exception ignored) {
+        }
     }
 
     @Test
@@ -143,12 +158,13 @@ public class CalculatorTest {
         double z = x++ * (--y + 2) - 5 * x + y++;
         double w = 2 + 3 * x++;
 
-        var input = new ByteArrayInputStream("x=7\ny=--x*3+5*(x++*2)/4\nz=x++*(--y+2)-5*x+y++\nw=2+3*x++".getBytes());
+        var input = new ByteArrayInputStream("x=7\ny=--x*3+5*(x++ *2)/4\nz=x++ *(--y+2)-5*x+y++\nw=2+3*x++".getBytes());
         Calculator calc = new Calculator();
         try {
             calc.evaluate(new InputStreamReader(input));
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
         Map<String, Double> exp = Map.of("x", x, "y", y, "z", z, "w", w);
