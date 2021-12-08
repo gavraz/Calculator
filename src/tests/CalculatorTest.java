@@ -177,6 +177,17 @@ public class CalculatorTest {
         }
         exp = Map.of("x", x, "y", y);
         assertEquals(exp, calc.getVars());
+
+        calc = new Calculator();
+        x = 10;
+        y = x++ +(++x - x--)*(++x);
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=10\ny=x++ +(++x - x--)*(++x)".getBytes())));
+        } catch (Exception ignored) {
+            fail();
+        }
+        exp = Map.of("x", x, "y", y);
+        assertEquals(exp, calc.getVars());
     }
 
     @Test
@@ -198,12 +209,11 @@ public class CalculatorTest {
         Map<String, Double> exp = Map.of("x", x, "y", y, "z", z, "w", w);
         assertEquals(exp, calc.getVars());
 
-        x = 0;
+        x = 2;
         y = 3;
-//        z = (x++) + y-- * ((2 + (++x) * 5) * 9 + 10 + y * 5);
-        z =  ((2 + (++x) * 5) );
-//        input = new ByteArrayInputStream("x=0\ny=3\nz=(x++)+y-- *((2+(++x)*5)*9+10+y*5)".getBytes());
-        input = new ByteArrayInputStream("x=0\ny=3\nz=((2+(++x)*5))\n".getBytes());
+        z = (x++) + y-- * ((2 + (++x) * 5) * 9 + 10 + y * 5);
+        input = new ByteArrayInputStream("x=2\ny=3\nz=(x++)+y-- *(((2+(++x)*5))*9+10+y*5)\n".getBytes());
+
         calc = new Calculator();
         try {
             calc.evaluate(new InputStreamReader(input));

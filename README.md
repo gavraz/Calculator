@@ -37,3 +37,4 @@ Tokenization Factory:
 ### Notes
 
 1. ParenthesesValidator can be generalized to describe a simple open-close matcher.
+2. We currently don't support "-" as an unary operator (not even for numbers).

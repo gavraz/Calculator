@@ -155,28 +155,18 @@ public class PrecedenceClimbing {
         throw new ParsingException("could not evaluate token");
     }
 
-    private Token handle_unary(Token current) throws TokenizationException, EvaluationException {
+    // parse_expression is the main function of the algorithm and is used to do the actual parsing.
+    private Token parse_expression(Token lhs, int max_precedence) throws ParsingException, TokenizationException, EvaluationException {
         // ++VAR
-        if (ParsingUtil.isUnaryOperator(current)) {
-            return this.unary_evaluator.Evaluate(this.tokenizer.next(), current, false);
+        if (ParsingUtil.isUnaryOperator(lhs)) {
+            lhs = this.unary_evaluator.Evaluate(this.tokenizer.next(), lhs, false);
         }
 
         var lookahead = this.tokenizer.peekNext();
         // VAR++
-        if (current.getType() == Token.Type.IDENTIFIER && ParsingUtil.isUnaryOperator(lookahead)) {
-            current = this.unary_evaluator.Evaluate(current, lookahead, true);
+        if (lhs.getType() == Token.Type.IDENTIFIER && ParsingUtil.isUnaryOperator(lookahead)) {
+            lhs = this.unary_evaluator.Evaluate(lhs, lookahead, true);
             this.tokenizer.advance();
-            return current;
-        }
-
-        return null;
-    }
-
-    // parse_expression is the main function of the algorithm and is used to do the actual parsing.
-    private Token parse_expression(Token lhs, int max_precedence) throws ParsingException, TokenizationException, EvaluationException {
-        var res = this.handle_unary(lhs);
-        if (res != null) {
-            lhs = res;
         }
 
         if (lhs.getType() == Token.Type.LEFT_PARENTHESIS) {
@@ -184,7 +174,7 @@ public class PrecedenceClimbing {
             lhs = parse_expression(this.tokenizer.next(), this.max_precedence);
         }
 
-        var lookahead = this.tokenizer.peekNext();
+        lookahead = this.tokenizer.peekNext();
 
         if (lookahead.getType() == Token.Type.RIGHT_PARENTHESIS) {
             this.parentheses_validator.onClose();
