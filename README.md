@@ -23,14 +23,17 @@
 4. ASSIGN:={VAR}[=,+=,-=,*=,/=]{EXPR}
 5. EXPR:=  ({EXPR}) || ASSIGN || SUM || MUL || DIV || SUB || {VAR}++ || ++{VAR} || {VAR}-- || --{VAR}
 
-### Future Optimizations
+### Optional Optimizations
 
 Tokenization Factory:
 1. A state machine tokenizer (disadvantage: less clear).
 2. Consider pattern matching algorithms.
 3. The Constructor.Result burdens the GC. We can partially bypass it with a reference to a position.
 
+### Additional Tests
+1. Test the constructors in the TokenizationFactory (requires extraction of the functions).
+2. Test the unary constructor.
+
 ### Notes
 
 1. ParenthesesValidator can be generalized to describe a simple open-close matcher.
-2. We can use custom exceptions for tighter testing.

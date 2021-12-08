@@ -26,11 +26,11 @@ class UnaryEvaluator {
      *
      * @param operand             the operand token.
      * @param operation           the unary operation.
-     * @param evaluate_to_operand is true iff the operation should be evaluated to the operand token.
-     * @return the value of the unary operation on the provided operand with respect to the evaluate_to_operand.
+     * @param post_fix is true iff the operation should be evaluated to the operand token.
+     * @return the value of the unary operation on the provided operand with respect to the post_fix.
      * @throws EvaluationException if the operation could not be evaluated with respect to the operand.
      */
-    public Token Evaluate(Token operand, Token operation, boolean evaluate_to_operand) throws EvaluationException {
+    public Token Evaluate(Token operand, Token operation, boolean post_fix) throws EvaluationException {
         var var = (IdentifierToken) operand;
         if (operand.getType() != Token.Type.IDENTIFIER) {
             throw new EvaluationException("unary evaluation failed: expected identifier");
@@ -50,7 +50,7 @@ class UnaryEvaluator {
 
         this.env.put(var.getID(), value + delta);
 
-        if (evaluate_to_operand) {
+        if (post_fix) {
             return new ValueToken(value);
         }
 

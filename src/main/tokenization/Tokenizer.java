@@ -35,7 +35,7 @@ public class Tokenizer {
         }
 
         Constructor.Result result = TokenFactory.instance().tryConstructNext(this.input, this.i);
-        if (result == null || result.token == null || result == Constructor.Result.None) { // TODO: avoid this behavior
+        if (result == Constructor.Result.None) {
             throw new TokenizationException("no matching token");
         }
         this.next = result.token;
@@ -62,7 +62,7 @@ public class Tokenizer {
     public void advance() {
         this.i += this.last_consumed;
         this.last_consumed = 0;
-        if (this.next.getType() != Token.Type.Term) {
+        if (this.next != null && this.next.getType() != Token.Type.Term) {
             this.next = null;
         }
     }

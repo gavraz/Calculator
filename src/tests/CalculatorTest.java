@@ -106,6 +106,23 @@ public class CalculatorTest {
     }
 
     @Test
+    public void TestWhitespaces() {
+        Calculator calc = new Calculator();
+        double x = 5 + 2 + 3;
+        double y = x++ + 5 + ++x;
+
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x  = 5  +2   +   3\ny= x++ +  5 +   ++x".getBytes())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        Map<String, Double> exp = Map.of("x", x, "y", y);
+        assertEquals(exp, calc.getVars());
+    }
+
+    @Test
     public void TestIncDec() {
         double x = 5;
         double y = 2;
@@ -149,6 +166,17 @@ public class CalculatorTest {
             fail();
         } catch (Exception ignored) {
         }
+
+        calc = new Calculator();
+        x = 10;
+        y = --x * 3 + 1 * x++;
+        try {
+            calc.evaluate(new InputStreamReader(new ByteArrayInputStream("x=10\ny=--x * 3 + 1 * x++".getBytes())));
+        } catch (Exception ignored) {
+            fail();
+        }
+        exp = Map.of("x", x, "y", y);
+        assertEquals(exp, calc.getVars());
     }
 
     @Test
@@ -168,6 +196,23 @@ public class CalculatorTest {
         }
 
         Map<String, Double> exp = Map.of("x", x, "y", y, "z", z, "w", w);
+        assertEquals(exp, calc.getVars());
+
+        x = 0;
+        y = 3;
+//        z = (x++) + y-- * ((2 + (++x) * 5) * 9 + 10 + y * 5);
+        z =  ((2 + (++x) * 5) );
+//        input = new ByteArrayInputStream("x=0\ny=3\nz=(x++)+y-- *((2+(++x)*5)*9+10+y*5)".getBytes());
+        input = new ByteArrayInputStream("x=0\ny=3\nz=((2+(++x)*5))\n".getBytes());
+        calc = new Calculator();
+        try {
+            calc.evaluate(new InputStreamReader(input));
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        }
+
+        exp = Map.of("x", x, "y", y, "z", z);
         assertEquals(exp, calc.getVars());
     }
 }
