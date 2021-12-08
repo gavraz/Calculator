@@ -21,7 +21,8 @@ public class CalculatorTest {
             assertEquals("(x=8.0,y=9.0,z=64.0)", calc.output());
             System.out.println(calc.output());
         } catch (Exception e) {
-            System.out.printf("Could not evaluate expression: %s\n", e);
+            System.out.printf("could not evaluate expression: %s\n", e);
+            fail();
         }
     }
 
@@ -35,6 +36,7 @@ public class CalculatorTest {
             assertEquals("(x=15.0)", calc.output());
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
         input = new ByteArrayInputStream("x=((5+1)*(2+1)+3)".getBytes());
@@ -43,6 +45,7 @@ public class CalculatorTest {
             assertEquals("(x=21.0)", calc.output());
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
         input = new ByteArrayInputStream("x=((5+1)+(1+1)*(3+0))".getBytes());
@@ -51,6 +54,7 @@ public class CalculatorTest {
             assertEquals("(x=12.0)", calc.output());
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
         input = new ByteArrayInputStream("x=(6)".getBytes());
@@ -59,6 +63,7 @@ public class CalculatorTest {
             assertEquals("(x=6.0)", calc.output());
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
         input = new ByteArrayInputStream("x=((1+2))+(3)".getBytes());
@@ -67,6 +72,7 @@ public class CalculatorTest {
             assertEquals("(x=6.0)", calc.output());
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
         input = new ByteArrayInputStream("x=(1*3+1)+(2+2)*(3-5)".getBytes());
@@ -75,6 +81,7 @@ public class CalculatorTest {
             assertEquals("(x=-4.0)", calc.output());
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
     }
 

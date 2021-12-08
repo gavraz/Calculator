@@ -6,6 +6,7 @@ import main.tokenization.ValueToken;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ParsingTest {
     @Test
@@ -17,6 +18,7 @@ public class ParsingTest {
             assertEquals(11.0, ((ValueToken) res).getValue());
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         }
 
     }

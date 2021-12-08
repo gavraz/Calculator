@@ -157,6 +157,7 @@ public class PrecedenceClimbing {
 
     // parse_expression is the main function of the algorithm and is used to do the actual parsing.
     private Token parse_expression(Token lhs, int max_precedence) throws ParsingException, TokenizationException, EvaluationException {
+        /// -- handle unary begin --
         // ++VAR
         if (ParsingUtil.isUnaryOperator(lhs)) {
             lhs = this.unary_evaluator.Evaluate(this.tokenizer.next(), lhs, false);
@@ -168,6 +169,7 @@ public class PrecedenceClimbing {
             lhs = this.unary_evaluator.Evaluate(lhs, lookahead, true);
             this.tokenizer.advance();
         }
+        /// -- handle unary end --
 
         if (lhs.getType() == Token.Type.LEFT_PARENTHESIS) {
             this.parentheses_validator.onOpen();
@@ -192,14 +194,14 @@ public class PrecedenceClimbing {
                 this.tokenizer.advance();
                 var rhs = this.tokenizer.next();
 
-                // -- handle parentheses begin --
+                /// -- handle parentheses begin --
                 if (rhs.getType() == Token.Type.LEFT_PARENTHESIS) {
                     this.parentheses_validator.onOpen();
                     rhs = parse_expression(this.tokenizer.next(), this.max_precedence);
                 }
-                // -- handle parentheses end --
+                /// -- handle parentheses end --
 
-                // -- handle unary begin --
+                /// -- handle unary begin --
                 // ++VAR
                 if (ParsingUtil.isUnaryOperator(rhs)) {
                     rhs = this.unary_evaluator.Evaluate(this.tokenizer.next(), rhs, false);
@@ -211,7 +213,7 @@ public class PrecedenceClimbing {
                     this.tokenizer.advance();
                     lookahead = this.tokenizer.peekNext();
                 }
-                // -- handle unary end --
+                /// -- handle unary end --
 
                 while (
                         (ParsingUtil.isBinaryOperator(lookahead) || ParsingUtil.isUnaryOperator(lookahead)) &&
@@ -221,11 +223,8 @@ public class PrecedenceClimbing {
                         // recursive call; we have a higher precedence;
                         rhs = parse_expression(rhs, this.precedence.get(op.getType()) - 1);
                     } else { // unary
-                        // -- handle unary begin --
                         // ++VAR
-                        if (ParsingUtil.isUnaryOperator(rhs)) {
-                            rhs = this.unary_evaluator.Evaluate(this.tokenizer.next(), rhs, false);
-                        }
+                        rhs = this.unary_evaluator.Evaluate(this.tokenizer.next(), rhs, false);
                     }
 
                     lookahead = this.tokenizer.peekNext();
@@ -237,7 +236,7 @@ public class PrecedenceClimbing {
                     }
                 }
 
-                // -- calculate the binary op --
+                /// -- calculate the binary op --
                 lhs = new ValueToken(this.binary_evaluators.get(op.getType()).evaluate(lhs, rhs));
             } else { // means lookahead is unary
                 // ++VAR
