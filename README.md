@@ -10,9 +10,10 @@
 * In-expression assignments
 
 ### Algorithm: Precedence Climbing
-* Wiki: https://en.wikipedia.org/wiki/Operator-precedence_parser
-* Parsing approaches in general + precedence climbing: https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
-* More about precedence climbing: https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
+* Resources
+  * [Operator-precedence parser](https://en.wikipedia.org/wiki/Operator-precedence_parser)
+  * [Parsing approaches](https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm)
+  * [More about precedence climbing](https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing)
 * Main advantages: efficient, relatively simple.
 * Main disadvantage: ambiguous unary-binary operators with non-equal precedence is not easily supported.  
 
@@ -22,10 +23,3 @@
 3. TERMINAL:={NUM|VAR}
 4. ASSIGN:={VAR}[=,+=,-=,*=,/=]{EXPR}
 5. EXPR:=  ({EXPR}) || ASSIGN || SUM || MUL || DIV || SUB || {VAR}++ || ++{VAR} || {VAR}-- || --{VAR}
-
-### Future Optimizations
-1. A state machine tokenizer.
-2. Concurrent tokenization and parsing.
-
-### Notes
-1. ParenthesesValidator can be generalized to describe a simple open-close matcher.
